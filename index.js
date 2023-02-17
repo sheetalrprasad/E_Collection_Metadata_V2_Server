@@ -54,6 +54,16 @@ app.get('/ecollections',(req, res) => {
     })
 })
 
+// app.get('/login',(req, res) => {
+//     db.query("SELECT * FROM `User` WHERE Name="+req.body.username+" AND PWD="+req.body.pwd, (err, result) => {
+//         if(err) {
+//             console.log(err)
+//         } else {
+//             res.send(result)
+//         }
+//     })
+// })
+
 app.listen(3001, ()=>{
    console.log("server running on 3001"); 
 });
