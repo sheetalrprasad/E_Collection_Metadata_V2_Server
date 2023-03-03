@@ -94,7 +94,18 @@ app.get('/ecollections',(req, res) => {
     })
 })
 
+app.get('/all973collections',(req, res) => {
+    sql = "SELECT `CollectionName`, 'P' AS `P/E` FROM `973P-CollectionName` Union SELECT 	`973Value` AS `CollectionName`, 'E' AS `P/E` FROM `973E-CollectionName` Order by `CollectionName`";
+    db.query( sql, (err, result) => {
+        if(err) {
+            console.log(err)
+        } else {
+            res.send(result)
+        }
+    })
+})
 
+// In Progress
 app.get('/ecollections-edit',(req, res) => {
     const { id } = req.body;
     db.query("SELECT * FROM `AllEbookCollections` WHERE CollectionID = ?", [id], (err, result) => {
