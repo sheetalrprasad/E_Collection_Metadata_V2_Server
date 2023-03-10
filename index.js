@@ -106,15 +106,16 @@ app.get('/all973collections',(req, res) => {
 })
 
 // In Progress
-app.get('/ecollections-edit',(req, res) => {
-    const { id } = req.body;
-    db.query("SELECT * FROM `AllEbookCollections` WHERE CollectionID = ?", [id], (err, result) => {
-        if(err) {
-            console.log(err)
-        } else {
-            res.send(result)
-        }
-    })
+app.post('/ecollections-edit',(req, res) => {
+    console.log(req.body);
+    // const { id } = req.body;
+    // db.query("SELECT * FROM `AllEbookCollections` WHERE CollectionID = ?", [id], (err, result) => {
+    //     if(err) {
+    //         console.log(err)
+    //     } else {
+    //         res.send(result)
+    //     }
+    // })
 })
 
 
