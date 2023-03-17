@@ -108,6 +108,7 @@ app.get('/all973collections',(req, res) => {
 // In Progress
 app.post('/ecollections-edit',(req, res) => {
     console.log(req.body);
+    res.sendStatus(200);
     // const { id } = req.body;
     // db.query("SELECT * FROM `AllEbookCollections` WHERE CollectionID = ?", [id], (err, result) => {
     //     if(err) {
