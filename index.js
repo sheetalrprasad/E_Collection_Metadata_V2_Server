@@ -106,17 +106,62 @@ app.get('/all973collections',(req, res) => {
 })
 
 // In Progress
-app.post('/ecollections-edit',(req, res) => {
-    console.log(req.body);
-    res.sendStatus(200);
-    // const { id } = req.body;
-    // db.query("SELECT * FROM `AllEbookCollections` WHERE CollectionID = ?", [id], (err, result) => {
-    //     if(err) {
-    //         console.log(err)
-    //     } else {
-    //         res.send(result)
-    //     }
-    // })
+app.post('/ecollections-edit', async (req, res) => {
+
+    const oldID = req.body["oldID"];
+    let setError = false;
+
+    if ( (req.body["namecheck"] === "on") & (req.body["e973name"]!="") ) {
+        const eName = req.body["e973name"];
+        await db.query("UPDATE `973E-CollectionName` SET `973Value`=? WHERE `973Value` = ?", [eName,oldID], (err, result) => {
+            if(err) {
+                console.log(err);
+                setError = true;
+                res.sendStatus(500);
+            } 
+        })
+    }
+    if ((req.body["bibcheck"] === "on") & (req.body["e973bib"]!=3) ){
+        const bib = req.body["e973bib"];
+        await db.query("UPDATE `973E-CollectionName` SET `973inAllBIB`=? WHERE `973Value` = ?", [bib,oldID], (err, result) => {
+            if(err) {
+                console.log(err);
+                setError = true;
+                res.sendStatus(500)
+            } 
+        })
+    }
+    
+    if ((req.body["nrcheck"] === "on") & (req.body["e973nr"]!=3) ){
+        const nr = req.body["e973nr"];
+        await db.query("UPDATE `973E-CollectionName` SET `973NormRule`=? WHERE `973Value` = ?", [nr,oldID], (err, result) => {
+            if(err) {
+                console.log(err);
+                setError = true;
+            }
+        })
+    }
+
+    if ((req.body["izcheck"] === "on") & (req.body["e973iz"]!=3)) {
+        const iz = req.body["e973iz"];
+        db.query("UPDATE `973E-CollectionName` SET `IZonly?`=? WHERE `973Value` = ?", [iz,oldID], (err, result) => {
+            if(err) {
+                console.log(err);
+                setError = true;
+            }
+        })
+    }
+
+    if (req.body["notecheck"] === "on"){
+        const note = req.body["e973note"];
+        db.query("UPDATE `973E-CollectionName` SET `Note`=? WHERE `973Value` = ?", [note,oldID], (err, result) => {
+            if(err) {
+                console.log(err);
+                setError = true;
+            }
+        })
+    }
+
 })
 
 
