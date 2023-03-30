@@ -105,7 +105,6 @@ app.get('/all973collections',(req, res) => {
     })
 })
 
-// In Progress
 app.post('/ecollections-edit', async (req, res) => {
 
     const oldID = req.body["oldID"];
@@ -162,6 +161,17 @@ app.post('/ecollections-edit', async (req, res) => {
         })
     }
 
+    res.sendStatus(200);
+})
+
+app.delete('/ecollections-delete/:value', async (req, res) => {
+    let e973Val = req.params.value;
+    db.query("DELETE FROM `973E-CollectionName` WHERE `973Value` = ?", [e973Val], (err, result) => {
+        if(err) {
+            console.log(err);
+        }
+    })
+    res.sendStatus(200);
 })
 
 
