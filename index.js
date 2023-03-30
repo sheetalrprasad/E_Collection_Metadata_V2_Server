@@ -174,6 +174,55 @@ app.delete('/ecollections-delete/:value', async (req, res) => {
     res.sendStatus(200);
 })
 
+app.post('/ecollections-add', async (req, res) => {
+    console.log(req.body);
+})
+
+
+app.post('/pcollections-edit', async (req, res) => {
+
+    const oldID = req.body["oldID"];
+    let setError = false;
+
+    if ( (req.body["namecheck"] === "on") & (req.body["p973name"]!="") ) {
+        const eName = req.body["p973name"];
+        await db.query("UPDATE `973P-CollectionName` SET `CollectionName`=? WHERE `CollectionName` = ?", [eName,oldID], (err, result) => {
+            if(err) {
+                console.log(err);
+                setError = true;
+                res.sendStatus(500);
+            } 
+        })
+    }
+    
+    if (req.body["notecheck"] === "on"){
+        const note = req.body["p973note"];
+        db.query("UPDATE `973P-CollectionName` SET `Note`=? WHERE `CollectionName` = ?", [note,oldID], (err, result) => {
+            if(err) {
+                console.log(err);
+                setError = true;
+            }
+        })
+    }
+
+    setError ? res.sendStatus(500) : res.sendStatus(200);
+})
+
+app.delete('/pcollections-delete/:value', async (req, res) => {
+    let name = req.params.value;
+    db.query("DELETE FROM `973P-CollectionName` WHERE `CollectionName` = ?", [name], (err, result) => {
+        if(err) {
+            console.log(err);
+        }
+    })
+    res.sendStatus(200);
+})
+
+app.post('/pcollections-add', async (req, res) => {
+    console.log(req.body);
+})
+
+
 
 app.listen(3001, ()=>{
    console.log("server running on 3001"); 
