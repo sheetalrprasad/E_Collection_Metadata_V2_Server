@@ -259,7 +259,7 @@ app.post('/pcollections-add', async (req, res) => {
             console.log(err);
         }else{
             res.sendStatus(200);
-        }
+        } 
     })
     
 })
