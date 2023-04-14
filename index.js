@@ -1,6 +1,9 @@
 const express = require('express')
 const app = express()
 const mysql = require('mysql')
+const cookieParser = require('cookie-parser')
+const bodyParser = require('body-parser')
+const session = require('express-session')
 
 const cors = require('cors')
 
@@ -20,7 +23,18 @@ const corsOptions = {
 }
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(cookieParser());
+app.use(bodyParser.urlencoded({ extended: true }));
 
+app.use(session({
+    key: "userId",
+    secret: "metadata",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        expires: 60 * 60 * 2,
+    },
+}));
 
 
 // Setting up MySQL
@@ -31,17 +45,25 @@ const db = mysql.createConnection({
     database: 'metadata_ebook_collection_test',
 });
 
+app.get('/auth',(req, res) => {
+    if(req.session.user) {
+        res.send({loggedIn: true, user: req.session.user});
+    } else {
+        res.send({loggedIn: false});
+    }
+})
 
 // Login Function
 app.post('/auth',(req, res) => {
    
     const { user, pwd } = req.body;
-    query_stmt = "SELECT * FROM `User` WHERE Name = ? AND PWD = ?";
+    query_stmt = "SELECT Name FROM `User` WHERE Name = ? AND PWD = ?";
     db.query(query_stmt, [user, pwd], (err, result) => {
         if(err) {
             console.log(err)
         } else {
             if (result.length === 1) {
+                req.session.user = result;
                 res.status(200).send(result);
             } else if ( result.length > 1){
                 res.status(500).send("User Conflict.");
