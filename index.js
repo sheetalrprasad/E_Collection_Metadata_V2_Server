@@ -45,13 +45,6 @@ const db = mysql.createConnection({
     database: 'metadata_ebook_collection_test',
 });
 
-app.get('/auth',(req, res) => {
-    if(req.session.user) {
-        res.send({loggedIn: true, user: req.session.user});
-    } else {
-        res.send({loggedIn: false});
-    }
-})
 
 // Login Function
 app.post('/auth',(req, res) => {
@@ -77,7 +70,7 @@ app.post('/auth',(req, res) => {
 })
 
 
-// Get all collections
+// Get all e-collections
 app.get('/allcollections',(req, res) => {
     db.query("SELECT * FROM AllEbookCollections", (err, result) => {
         if(err) {
@@ -87,6 +80,142 @@ app.get('/allcollections',(req, res) => {
         }
     })
 })
+
+//Add a new e-collections
+app.post('/allcollections-add',(req, res) => {
+    const { collectionID, collectionName, resourceType, bibSource, updateFrq, active, perpetual, aggregator, dataSync, oa, reclamation, collectionVendor, collectionNotes } = req.body;
+    
+    query_stmt = "INSERT INTO `AllEbookCollections` (`Collection ID`, `Collection Name`, `Resource Type`, `Bib Source`, `Update Frequency`, `Active?`, `Perpetual?`, `Aggregator?`, `Data Sync?`, `OA?`, `Reclamation?`, `Vendor`, `Note`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";    
+    
+    db.query(query_stmt, [collectionID, collectionName, resourceType, bibSource, updateFrq, active, perpetual, aggregator, dataSync, oa, reclamation, collectionVendor, collectionNotes], (err, result) => {
+        if(err) {
+            console.log(err)
+        } else {
+            res.sendStatus(200);
+        }
+    
+    })
+})
+
+app.delete('/allcollections-delete/:value',(req, res) => {
+
+    console.log(req.params.value);
+    // let col_Id = req.params.value;
+
+    // query_stmt = "DELETE FROM `AllEbookCollections` WHERE `Collection ID` = ?";
+    // db.query(query_stmt, [col_Id], (err, result) => {
+    //     if(err) {
+    //         console.log(err)
+    //         res.sendStatus(400);
+    //     } else {
+    //         res.sendStatus(200);
+    //     }
+    // })
+})
+
+
+// In Progress 
+app.post("/allcollections-edit", (req, res) => {
+    
+    const oldID = req.body["oldID"];
+    let setError = false;
+
+    console.log(req.body);
+
+    // if ( (req.body["idCheck"] === "on") & (req.body["collectionID"]!="") ) {
+    //     const eNewID = req.body["collectionID"];
+    //     db.query("UPDATE `AllEbookCollections` SET `Collection ID`=? WHERE `Collection ID` = ?", [eNewID,oldID], (err, result) => {
+    //         if(err) {
+    //             console.log(err);
+    //             setError = true;
+    //             res.sendStatus(500);
+    //         } else {
+    //             if(result.affectedRows === 0) {
+    //                 setError = true;
+    //                 res.sendStatus(404);
+    //             }
+    //         }
+    //     })
+    // }
+
+    // if ( (req.body["namecheck"] === "on") & (req.body["name"]!="") ) {
+    //     const eName = req.body["name"];
+    //     db.query("UPDATE `AllEbookCollections` SET `Collection ID`=? WHERE `Collection Name` = ?", [eName,oldID], (err, result) => {
+    //         if(err) {
+    //             console.log(err);
+    //             setError = true;
+    //             res.sendStatus(500);
+    //         } else {
+    //             if(result.affectedRows === 0) {
+    //                 setError = true;
+    //             }
+    //         }
+    //     })
+    // }
+    // if ((req.body["bibcheck"] === "on") & (req.body["e973bib"]!=3) ){
+    //     const bib = req.body["e973bib"];
+    //     db.query("UPDATE `973E-CollectionName` SET `973inAllBIB`=? WHERE `973Value` = ?", [bib,oldID], (err, result) => {
+    //         if(err) {
+    //             console.log(err);
+    //             setError = true;
+    //             res.sendStatus(500)
+    //         } else {
+    //             if(result.affectedRows === 0) {
+    //                 setError = true;
+    //                 res.sendStatus(404);
+    //             }
+    //         }
+    //     })
+    // }
+    
+    // if ((req.body["nrcheck"] === "on") & (req.body["e973nr"]!=3) ){
+    //     const nr = req.body["e973nr"];
+    //     db.query("UPDATE `973E-CollectionName` SET `973NormRule`=? WHERE `973Value` = ?", [nr,oldID], (err, result) => {
+    //         if(err) {
+    //             console.log(err);
+    //             setError = true;
+    //         }else {
+    //             if(result.affectedRows === 0) {
+    //                 setError = true;
+    //                 res.sendStatus(404);
+    //             }
+    //         }
+    //     })
+    // }
+
+    // if ((req.body["izcheck"] === "on") & (req.body["e973iz"]!=3)) {
+    //     const iz = req.body["e973iz"];
+    //     db.query("UPDATE `973E-CollectionName` SET `IZonly?`=? WHERE `973Value` = ?", [iz,oldID], (err, result) => {
+    //         if(err) {
+    //             console.log(err);
+    //             setError = true;
+    //         }else {
+    //             if(result.affectedRows === 0) {
+    //                 setError = true;
+    //                 res.sendStatus(404);
+    //             }
+    //         }
+    //     })
+    // }
+
+    // if (req.body["notecheck"] === "on"){
+    //     const note = req.body["e973note"];
+    //     db.query("UPDATE `973E-CollectionName` SET `Note`=? WHERE `973Value` = ?", [note,oldID], (err, result) => {
+    //         if(err) {
+    //             console.log(err);
+    //             setError = true;
+    //         }else {
+    //             if(result.affectedRows === 0) {
+    //                 setError = true;
+    //                 res.sendStatus(404);
+    //             }
+    //         }
+    //     })
+    // }
+
+})
+
+
 
 // Get all vendors
 app.get('/vendors',(req, res) => {
@@ -110,7 +239,7 @@ app.get('/pcollections',(req, res) => {
     })
 })
 
-// Get all E Collections
+// Get all E Collections of 973
 app.get('/ecollections',(req, res) => {
     db.query("SELECT * FROM `973E-CollectionName`", (err, result) => {
         if(err) {
@@ -133,39 +262,52 @@ app.get('/all973collections',(req, res) => {
     })
 })
 
-// Update E Collection Item
-app.post('/ecollections-edit', async (req, res) => {
+// Update E Collection Item of 973
+app.post('/ecollections-edit', (req, res) => {
 
     const oldID = req.body["oldID"];
     let setError = false;
 
     if ( (req.body["namecheck"] === "on") & (req.body["e973name"]!="") ) {
         const eName = req.body["e973name"];
-        await db.query("UPDATE `973E-CollectionName` SET `973Value`=? WHERE `973Value` = ?", [eName,oldID], (err, result) => {
+        db.query("UPDATE `973E-CollectionName` SET `973Value`=? WHERE `973Value` = ?", [eName,oldID], (err, result) => {
             if(err) {
                 console.log(err);
                 setError = true;
                 res.sendStatus(500);
-            } 
+            } else {
+                
+                if(result.affectedRows === 0) {
+                    setError = true;
+                }
+            }
         })
     }
     if ((req.body["bibcheck"] === "on") & (req.body["e973bib"]!=3) ){
         const bib = req.body["e973bib"];
-        await db.query("UPDATE `973E-CollectionName` SET `973inAllBIB`=? WHERE `973Value` = ?", [bib,oldID], (err, result) => {
+        db.query("UPDATE `973E-CollectionName` SET `973inAllBIB`=? WHERE `973Value` = ?", [bib,oldID], (err, result) => {
             if(err) {
                 console.log(err);
                 setError = true;
                 res.sendStatus(500)
-            } 
+            } else {
+                if(result.affectedRows === 0) {
+                    setError = true;
+                }
+            }
         })
     }
     
     if ((req.body["nrcheck"] === "on") & (req.body["e973nr"]!=3) ){
         const nr = req.body["e973nr"];
-        await db.query("UPDATE `973E-CollectionName` SET `973NormRule`=? WHERE `973Value` = ?", [nr,oldID], (err, result) => {
+        db.query("UPDATE `973E-CollectionName` SET `973NormRule`=? WHERE `973Value` = ?", [nr,oldID], (err, result) => {
             if(err) {
                 console.log(err);
                 setError = true;
+            }else {
+                if(result.affectedRows === 0) {
+                    setError = true;
+                }
             }
         })
     }
@@ -176,6 +318,10 @@ app.post('/ecollections-edit', async (req, res) => {
             if(err) {
                 console.log(err);
                 setError = true;
+            }else {
+                if(result.affectedRows === 0) {
+                    setError = true;
+                }
             }
         })
     }
@@ -186,14 +332,22 @@ app.post('/ecollections-edit', async (req, res) => {
             if(err) {
                 console.log(err);
                 setError = true;
+            }else {
+                if(result.affectedRows === 0) {
+                    setError = true;
+                }
             }
         })
     }
 
-    res.sendStatus(200);
+    if (setError) {
+        res.sendStatus(404);
+    } else {
+        res.sendStatus(200);
+    }   
 })
 
-// Delete E Collection Item
+// Delete E Collection Item of 973
 app.delete('/ecollections-delete/:value', async (req, res) => {
     let e973Val = req.params.value;
     db.query("DELETE FROM `973E-CollectionName` WHERE `973Value` = ?", [e973Val], (err, result) => {
@@ -204,7 +358,7 @@ app.delete('/ecollections-delete/:value', async (req, res) => {
     res.sendStatus(200);
 })
 
-// Add E Collection Item
+// Add E Collection Item of 973
 app.post('/ecollections-add', async (req, res) => {
     console.log(req.body);
     const e973id = BigInt(req.body["e973id"]);
@@ -239,7 +393,12 @@ app.post('/pcollections-edit', async (req, res) => {
                 console.log(err);
                 setError = true;
                 res.sendStatus(500);
-            } 
+            } else {
+                if(result.affectedRows === 0) {
+                    setError = true;
+                    res.sendStatus(404);
+                }
+            }
         })
     }
     
@@ -249,11 +408,15 @@ app.post('/pcollections-edit', async (req, res) => {
             if(err) {
                 console.log(err);
                 setError = true;
+            }else {
+                if(result.affectedRows === 0) {
+                    setError = true;
+                    res.sendStatus(404);
+                }
             }
         })
     }
 
-    setError ? res.sendStatus(500) : res.sendStatus(200);
 })
 
 // Delete P Collection Item
@@ -288,7 +451,8 @@ app.post('/pcollections-add', async (req, res) => {
 
 
 // Start server
-app.listen(3001, ()=>{
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, ()=>{
    console.log("server running on 3001"); 
 });
 
