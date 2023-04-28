@@ -12,3 +12,4 @@
 3. Go to the project directory
 4. Run `npm install` or `npm i` to install on dependency
 5. Run command `node index.js`
+6. To get the latest code run `git pull` in project directory and then do step 5.
