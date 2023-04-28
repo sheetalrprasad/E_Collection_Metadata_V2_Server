@@ -83,11 +83,12 @@ app.get('/allcollections',(req, res) => {
 
 //Add a new e-collections
 app.post('/allcollections-add',(req, res) => {
-    const { collectionID, collectionName, resourceType, bibSource, updateFrq, active, perpetual, aggregator, dataSync, oa, reclamation, collectionVendor, collectionNotes } = req.body;
+
+    const { eid, ename, resourceType, ebib, updateFreq, active, perpetual, aggregator, datasync, oa, reclamation, vendor, enote } = req.body;
     
-    query_stmt = "INSERT INTO `AllEbookCollections` (`Collection ID`, `Collection Name`, `Resource Type`, `Bib Source`, `Update Frequency`, `Active?`, `Perpetual?`, `Aggregator?`, `Data Sync?`, `OA?`, `Reclamation?`, `Vendor`, `Note`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";    
-    
-    db.query(query_stmt, [collectionID, collectionName, resourceType, bibSource, updateFrq, active, perpetual, aggregator, dataSync, oa, reclamation, collectionVendor, collectionNotes], (err, result) => {
+    query_stmt = "INSERT INTO `AllEbookCollections` (`Collection ID`, `Collection Name`, `Resource Type`, `Bib Source`, `Update Frequency`, `Active?`, `Perpetual?`, `Aggregator?`, `Data Sync?`, `OA?`, `Reclamation?`, `Vendor`, `Note`) SELECT `Collection ID`, `Collection Name`, `Resource Type`, `Bib Source`, `Update Frequency`, `Active?`, `Perpetual?`, `Aggregator?`, `Data Sync?`, `OA?`, `Reclamation?`, `Vendor`, `Note` FROM (SELECT "+eid+" AS `Collection ID`, '"+ename+"' AS `Collection Name`, '"+ resourceType+"' AS `Resource Type`, '"+ebib+"' AS `Bib Source`, '"+updateFreq+"' AS `Update Frequency`, "+active+" AS `Active?`, "+perpetual+" AS `Perpetual?`, "+aggregator+" AS `Aggregator?`, "+datasync+" AS `Data Sync?`, "+oa+" AS `OA?`, "+reclamation+" AS `Reclamation?`, '"+vendor+"' AS `Vendor`, '"+enote+"' AS `Note`) AS dataSet2";    
+
+    db.query(query_stmt, (err, result) => {
         if(err) {
             console.log(err)
         } else {
@@ -97,6 +98,7 @@ app.post('/allcollections-add',(req, res) => {
     })
 })
 
+// Delete a data from allEbookCollections
 app.delete('/allcollections-delete/:value',(req, res) => {
 
     let col_Id = req.params.value;
@@ -113,14 +115,11 @@ app.delete('/allcollections-delete/:value',(req, res) => {
 })
 
 
-// In Progress 
+// Edit allEbookCollections 
 app.post("/allcollections-edit", (req, res) => {
     
-    console.log("Data: ", req.body['oldID']);
     const oldID = req.body["oldID"];
     let setError = false;
-
-    console.log(req.body);
 
     if ( (req.body["namecheck"] === "on") & (req.body["name"]!="") ) {
         const eName = req.body["ename"];
@@ -302,7 +301,7 @@ app.post("/allcollections-edit", (req, res) => {
         })
     }
 
-    if ( (req.body["idCheck"] === "on") ) {
+    if ( (req.body["idcheck"] === "on") ) {
         const eNewID = req.body["eid"];
         db.query("UPDATE `AllEbookCollections` SET `Collection ID`=? WHERE `Collection ID` = ?", [eNewID,oldID], (err, result) => {
             if(err) {
@@ -473,7 +472,7 @@ app.delete('/ecollections-delete/:value', async (req, res) => {
 
 // Add E Collection Item of 973
 app.post('/ecollections-add', async (req, res) => {
-    console.log(req.body);
+   
     const e973id = BigInt(req.body["e973id"]);
     const eName = req.body["e973name"];
     const bib = req.body["e973bib"];
@@ -481,7 +480,7 @@ app.post('/ecollections-add', async (req, res) => {
     const iz = req.body["e973iz"];
     const note = req.body["e973note"]!==""?req.body["e973note"]:"\'\'";
 
-    let sql_query = "INSERT INTO `973E-CollectionName`(`CollectionID`,`973Value`,`973inAllBIB`,`973NormRule`,`IZonly?`,`Note`) SELECT `CollectionID`,`973Value`,`973inAllBIB`,`973NormRule`,`IZonly?`,`Note` FROM (SELECT "+e973id+" AS CollectionID, '"+eName+"' AS 973Value, "+bib+" AS 973inAllBIB, "+nr+" AS 973NormRule, "+iz+" AS `IZonly?`, "+note+" as Note) AS dataSet1";
+    let sql_query = "INSERT INTO `973E-CollectionName`(`CollectionID`,`973Value`,`973inAllBIB`,`973NormRule`,`IZonly?`,`Note`) SELECT `CollectionID`,`973Value`,`973inAllBIB`,`973NormRule`,`IZonly?`,`Note` FROM (SELECT "+e973id+" AS CollectionID, '"+eName+"' AS 973Value, "+bib+" AS 973inAllBIB, "+nr+" AS 973NormRule, "+iz+" AS `IZonly?`, '"+note+"' as Note) AS dataSet1";
 
     db.query(sql_query, (err, result) => {
         if(err) {
@@ -545,12 +544,11 @@ app.delete('/pcollections-delete/:value', async (req, res) => {
 
 // Add P Collection Item
 app.post('/pcollections-add', async (req, res) => {
-    console.log(req.body);
 
     const pName = req.body["p973name"];
     const note = req.body["p973note"]!==""?req.body["p973note"]:"\'\'";
 
-    let sql_query = "INSERT INTO `973P-CollectionName`(`CollectionName`,`Note`) SELECT `CollectionName`,`Note` FROM (SELECT '"+pName+"' AS CollectionName, "+note+" as Note) AS dataSet1";
+    let sql_query = "INSERT INTO `973P-CollectionName`(`CollectionName`,`Note`) SELECT `CollectionName`,`Note` FROM (SELECT '"+pName+"' AS CollectionName, '"+note+"' as Note) AS dataSet1";
 
     db.query(sql_query, (err, result) => {
         if(err) {
