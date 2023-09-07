@@ -51,6 +51,7 @@ app.post('/auth',(req, res) => {
    
     const { user, pwd } = req.body;
     query_stmt = "SELECT Name FROM `User` WHERE Name = ? AND PWD = ?";
+    
     db.query(query_stmt, [user, pwd], (err, result) => {
         if(err) {
             console.log(err)
