@@ -81,13 +81,15 @@ app.get('/allcollections',(req, res) => {
     })
 })
 
-//Add a new e-collections
+//Add a new all e-collections
 app.post('/allcollections-add',(req, res) => {
-    const { collectionID, collectionName, resourceType, bibSource, updateFrq, active, perpetual, aggregator, dataSync, oa, reclamation, collectionVendor, collectionNotes } = req.body;
-    
-    query_stmt = "INSERT INTO `AllEbookCollections` (`Collection ID`, `Collection Name`, `Resource Type`, `Bib Source`, `Update Frequency`, `Active?`, `Perpetual?`, `Aggregator?`, `Data Sync?`, `OA?`, `Reclamation?`, `Vendor`, `Note`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";    
-    
-    db.query(query_stmt, [collectionID, collectionName, resourceType, bibSource, updateFrq, active, perpetual, aggregator, dataSync, oa, reclamation, collectionVendor, collectionNotes], (err, result) => {
+
+    let { collectionID, collectionName, resourceType, bibSource, updateFreq, active, perpetual, aggregator, datasync, oa, reclamation, collectionVendor, collectionNotes } = req.body;
+    collectionID = BigInt(collectionID);
+
+    let sql_query = "INSERT INTO `AllEbookCollections` (`Collection ID`, `Collection Name`, `Resource Type`, `Bib Source`, `Update Frequency`, `Active?`, `Perpetual?`, `Aggregator?`, `Data Sync?`, `OA?`, `Reclamation?`, `Vendor`, `Note`) SELECT `Collection ID`, `Collection Name`, `Resource Type`, `Bib Source`, `Update Frequency`, `Active?`, `Perpetual?`, `Aggregator?`, `Data Sync?`, `OA?`, `Reclamation?`, `Vendor`, `Note` FROM (SELECT "+collectionID+" AS `Collection ID`, '"+collectionName+"' AS `Collection Name`, '"+resourceType+"' AS `Resource Type`, '"+bibSource+"' AS `Bib Source`, '"+updateFreq+"' AS `Update Frequency`, "+active+" AS `Active?`,"+perpetual+" AS `Perpetual?`, "+aggregator+" AS `Aggregator?`, "+datasync+" AS `Data Sync?`, "+oa+" AS `OA?`, "+reclamation+" AS `Reclamation?`, '"+collectionVendor+"' AS `Vendor`, '"+collectionNotes+"' AS `Note`) AS dataSet1";
+
+    db.query(sql_query, (err, result) => {
         if(err) {
             console.log(err)
         } else {
@@ -115,102 +117,65 @@ app.delete('/allcollections-delete/:value',(req, res) => {
 
 
 // In Progress 
-app.post("/allcollections-edit", (req, res) => {
+app.post("/allcollections-edit", async (req, res) => {
     
-    const oldID = req.body["oldID"];
-    let setError = false;
+    const oldID = Number(req.body["oldID"]);
+    let dataUpdate = "";
 
-    console.log(req.body);
-
-    if ( (req.body["idCheck"] === "on") & (req.body["collectionID"]!="") ) {
-        const eNewID = req.body["collectionID"];
-        db.query("UPDATE `AllEbookCollections` SET `Collection ID`=? WHERE `Collection ID` = ?", [eNewID,oldID], (err, result) => {
-            if(err) {
-                console.log(err);
-                setError = true;
-                res.sendStatus(500);
-            } else {
-                if(result.affectedRows === 0) {
-                    setError = true;
-                    res.sendStatus(404);
-                }
-            }
-        })
+    if (req.body["namecheck"] === "on"){
+        dataUpdate = dataUpdate + "`Collection Name`='"+req.body["ename"]+"',";
+    }
+    if(req.body["resourcecheck"] === "on"){
+        dataUpdate = dataUpdate + "`Resource Type`='"+req.body["resourceType"]+"',";
+    }
+    if(req.body["bibcheck"] === "on"){
+        dataUpdate = dataUpdate + "`Bib Source`='"+req.body["ebib"]+"',";
+    }
+    if(req.body["updatecheck"] === "on"){
+        dataUpdate = dataUpdate + "`Update Frequency`='"+req.body["updateFreq"]+"',";
+    }
+    if(req.body["activecheck"] === "on"){
+        dataUpdate = dataUpdate + "`Active?`="+req.body["active"]+",";
+    }
+    if(req.body["perpcheck"] === "on"){
+        dataUpdate = dataUpdate + "`Perpetual?`="+req.body["perpetual"]+",";
+    }
+    if(req.body["aggcheck"] === "on"){
+        dataUpdate = dataUpdate + "`Aggregator?`="+req.body["aggregator"]+",";
+    }
+    if(req.body["datasynccheck"] === "on"){
+        dataUpdate = dataUpdate + "`Data Sync?`="+req.body["datasync"]+",";
+    }
+    if(req.body["oacheck"] === "on"){
+        dataUpdate = dataUpdate + "`OA?`="+req.body["oa"]+",";
+    }
+    if(req.body["reclamationcheck"] === "on"){
+        dataUpdate = dataUpdate + "`Reclamation?`="+req.body["reclamation"]+",";
+    }
+    if(req.body["vendorcheck"] === "on"){
+        dataUpdate = dataUpdate + "`Vendor`='"+req.body["vendor"]+"',";
+    }
+    if(req.body["notecheck"] === "on"){
+        dataUpdate = dataUpdate + "`Note`='"+req.body["enote"]+"',";
+    }
+    if(req.body["idcheck"] === "on"){
+        dataUpdate = dataUpdate + "`Collection ID`="+req.body["eid"];
     }
 
-    if ( (req.body["namecheck"] === "on") & (req.body["name"]!="") ) {
-        const eName = req.body["name"];
-        db.query("UPDATE `AllEbookCollections` SET `Collection ID`=? WHERE `Collection Name` = ?", [eName,oldID], (err, result) => {
-            if(err) {
-                console.log(err);
-                setError = true;
-                res.sendStatus(500);
-            } else {
-                if(result.affectedRows === 0) {
-                    setError = true;
-                }
-            }
-        })
-    }
-    if ((req.body["bibcheck"] === "on") & (req.body["e973bib"]!=3) ){
-        const bib = req.body["e973bib"];
-        db.query("UPDATE `973E-CollectionName` SET `973inAllBIB`=? WHERE `973Value` = ?", [bib,oldID], (err, result) => {
-            if(err) {
-                console.log(err);
-                setError = true;
-                res.sendStatus(500)
-            } else {
-                if(result.affectedRows === 0) {
-                    setError = true;
-                    res.sendStatus(404);
-                }
-            }
-        })
-    }
-    
-    if ((req.body["nrcheck"] === "on") & (req.body["e973nr"]!=3) ){
-        const nr = req.body["e973nr"];
-        db.query("UPDATE `973E-CollectionName` SET `973NormRule`=? WHERE `973Value` = ?", [nr,oldID], (err, result) => {
-            if(err) {
-                console.log(err);
-                setError = true;
-            }else {
-                if(result.affectedRows === 0) {
-                    setError = true;
-                    res.sendStatus(404);
-                }
-            }
-        })
-    }
 
-    if ((req.body["izcheck"] === "on") & (req.body["e973iz"]!=3)) {
-        const iz = req.body["e973iz"];
-        db.query("UPDATE `973E-CollectionName` SET `IZonly?`=? WHERE `973Value` = ?", [iz,oldID], (err, result) => {
-            if(err) {
-                console.log(err);
-                setError = true;
-            }else {
-                if(result.affectedRows === 0) {
-                    setError = true;
-                    res.sendStatus(404);
-                }
+    try {
+        const resultData = db.query("UPDATE `AllEbookCollections` SET "+dataUpdate.slice(0,-1)+" WHERE `Collection ID` = "+oldID, (err, result) => {
+            if(result) { 
+                res.status(200).send({"message":"Data Updated Successfully"})
             }
-        })
-    }
+        });
 
-    if (req.body["notecheck"] === "on"){
-        const note = req.body["e973note"];
-        db.query("UPDATE `973E-CollectionName` SET `Note`=? WHERE `973Value` = ?", [note,oldID], (err, result) => {
-            if(err) {
-                console.log(err);
-                setError = true;
-            }else {
-                if(result.affectedRows === 0) {
-                    setError = true;
-                    res.sendStatus(404);
-                }
-            }
-        })
+    } catch (err) {
+        console.log(err);
+        if (err instanceof Errors.NotFound)
+            return res.status(HttpStatus.NOT_FOUND).send({ message: err.message }); // 404
+        
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ error: err, message: err.message }); // 500
     }
 
 })
@@ -266,17 +231,16 @@ app.post('/vendors-add',(req, res) => {
     })
 })
 
-// In Progress 
+// Update Vendor Item
 app.post("/vendors-edit", (req, res) => {
     
     const oldID = req.body["oldID"];
     let setError = false;
 
-    console.log(req.body);
 
     if ( (req.body["idCheck"] === "on") & (req.body["collectionID"]!="") ) {
-        const eNewID = req.body["collectionID"];
-        db.query("UPDATE `AllEbookCollections` SET `Collection ID`=? WHERE `Collection ID` = ?", [eNewID,oldID], (err, result) => {
+        const eVendorID = req.body["vendorId"];
+        db.query("UPDATE `VendorList` SET `Vendor ID`=? WHERE `Vendor ID` = ?", [eVendorID,oldID], (err, result) => {
             if(err) {
                 console.log(err);
                 setError = true;
@@ -291,8 +255,8 @@ app.post("/vendors-edit", (req, res) => {
     }
 
     if ( (req.body["namecheck"] === "on") & (req.body["name"]!="") ) {
-        const eName = req.body["name"];
-        db.query("UPDATE `AllEbookCollections` SET `Collection ID`=? WHERE `Collection Name` = ?", [eName,oldID], (err, result) => {
+        const vName = req.body["name"];
+        db.query("UPDATE `VendorList` SET `Vendor ID`=? WHERE `Vendor Name` = ?", [vName,oldID], (err, result) => {
             if(err) {
                 console.log(err);
                 setError = true;
@@ -304,9 +268,9 @@ app.post("/vendors-edit", (req, res) => {
             }
         })
     }
-    if ((req.body["bibcheck"] === "on") & (req.body["e973bib"]!=3) ){
-        const bib = req.body["e973bib"];
-        db.query("UPDATE `973E-CollectionName` SET `973inAllBIB`=? WHERE `973Value` = ?", [bib,oldID], (err, result) => {
+    if ((req.body["webcheck"] === "on") ){
+        const web = req.body["vendorWeb"];
+        db.query("UPDATE `VendorList` SET `Vendor Web`=? WHERE `Vendor ID` = ?", [web,oldID], (err, result) => {
             if(err) {
                 console.log(err);
                 setError = true;
@@ -320,9 +284,9 @@ app.post("/vendors-edit", (req, res) => {
         })
     }
     
-    if ((req.body["nrcheck"] === "on") & (req.body["e973nr"]!=3) ){
-        const nr = req.body["e973nr"];
-        db.query("UPDATE `973E-CollectionName` SET `973NormRule`=? WHERE `973Value` = ?", [nr,oldID], (err, result) => {
+    if ((req.body["usernamecheck"] === "on")){
+        const userName = req.body["userName"];
+        db.query("UPDATE `VendorList` SET `Vendor Web UserName`=? WHERE `Vendor ID` = ?", [userName,oldID], (err, result) => {
             if(err) {
                 console.log(err);
                 setError = true;
@@ -335,9 +299,9 @@ app.post("/vendors-edit", (req, res) => {
         })
     }
 
-    if ((req.body["izcheck"] === "on") & (req.body["e973iz"]!=3)) {
-        const iz = req.body["e973iz"];
-        db.query("UPDATE `973E-CollectionName` SET `IZonly?`=? WHERE `973Value` = ?", [iz,oldID], (err, result) => {
+    if ((req.body["pwdcheck"] === "on")) {
+        const password = req.body["password"];
+        db.query("UPDATE `VendorList` SET `Vendor Web PWD`=? WHERE `Vendor ID` = ?", [password,oldID], (err, result) => {
             if(err) {
                 console.log(err);
                 setError = true;
@@ -351,8 +315,23 @@ app.post("/vendors-edit", (req, res) => {
     }
 
     if (req.body["notecheck"] === "on"){
-        const note = req.body["e973note"];
-        db.query("UPDATE `973E-CollectionName` SET `Note`=? WHERE `973Value` = ?", [note,oldID], (err, result) => {
+        const note = req.body["vendornote"];
+        db.query("UPDATE `VendorList` SET `Note`=? WHERE `Vendor ID` = ?", [note,oldID], (err, result) => {
+            if(err) {
+                console.log(err);
+                setError = true;
+            }else {
+                if(result.affectedRows === 0) {
+                    setError = true;
+                    res.sendStatus(404);
+                }
+            }
+        })
+    }
+
+    if ((req.body["contactcheck"] === "on")) {
+        const contact = req.body["contact"];
+        db.query("UPDATE `VendorList` SET `Vendor Contact`=? WHERE `Vendor ID` = ?", [contact,oldID], (err, result) => {
             if(err) {
                 console.log(err);
                 setError = true;
