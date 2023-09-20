@@ -4,6 +4,8 @@ const mysql = require('mysql')
 const cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser')
 const session = require('express-session')
+require('dotenv').config()
+const axios = require('axios')
 
 const cors = require('cors')
 
@@ -116,13 +118,13 @@ app.delete('/allcollections-delete/:value',(req, res) => {
 })
 
 
-// In Progress 
+// All E-collection Edit 
 app.post("/allcollections-edit", async (req, res) => {
     
     const oldID = Number(req.body["oldID"]);
     let dataUpdate = "";
 
-    if (req.body["namecheck"] === "on"){
+    if ((req.body["namecheck"] === "on") & (req.body["ename"]!="")){
         dataUpdate = dataUpdate + "`Collection Name`='"+req.body["ename"]+"',";
     }
     if(req.body["resourcecheck"] === "on"){
@@ -159,7 +161,7 @@ app.post("/allcollections-edit", async (req, res) => {
         dataUpdate = dataUpdate + "`Note`='"+req.body["enote"]+"',";
     }
     if(req.body["idcheck"] === "on"){
-        dataUpdate = dataUpdate + "`Collection ID`="+req.body["eid"];
+        dataUpdate = dataUpdate + "`Collection ID`="+req.body["eid"]+" ";
     }
 
 
@@ -235,113 +237,56 @@ app.post('/vendors-add',(req, res) => {
 app.post("/vendors-edit", (req, res) => {
     
     const oldID = req.body["oldID"];
-    let setError = false;
+    let dataUpdate = "";
 
 
-    if ( (req.body["idCheck"] === "on") & (req.body["collectionID"]!="") ) {
-        const eVendorID = req.body["vendorId"];
-        db.query("UPDATE `VendorList` SET `Vendor ID`=? WHERE `Vendor ID` = ?", [eVendorID,oldID], (err, result) => {
-            if(err) {
-                console.log(err);
-                setError = true;
-                res.sendStatus(500);
-            } else {
-                if(result.affectedRows === 0) {
-                    setError = true;
-                    res.sendStatus(404);
-                }
-            }
-        })
+    if ( (req.body["idCheck"] === "on")) {
+        dataUpdate = dataUpdate + "`Vendor ID`='"+req.body["vendorId"]+"',";
     }
 
     if ( (req.body["namecheck"] === "on") & (req.body["name"]!="") ) {
         const vName = req.body["name"];
-        db.query("UPDATE `VendorList` SET `Vendor ID`=? WHERE `Vendor Name` = ?", [vName,oldID], (err, result) => {
-            if(err) {
-                console.log(err);
-                setError = true;
-                res.sendStatus(500);
-            } else {
-                if(result.affectedRows === 0) {
-                    setError = true;
-                }
-            }
-        })
+        dataUpdate = dataUpdate + "`Vendor Name` = '"+vName+"',";
     }
+
     if ((req.body["webcheck"] === "on") ){
         const web = req.body["vendorWeb"];
-        db.query("UPDATE `VendorList` SET `Vendor Web`=? WHERE `Vendor ID` = ?", [web,oldID], (err, result) => {
-            if(err) {
-                console.log(err);
-                setError = true;
-                res.sendStatus(500)
-            } else {
-                if(result.affectedRows === 0) {
-                    setError = true;
-                    res.sendStatus(404);
-                }
-            }
-        })
+        dataUpdate = dataUpdate + "`Vendor Web`= '"+web+"',";
     }
     
     if ((req.body["usernamecheck"] === "on")){
         const userName = req.body["userName"];
-        db.query("UPDATE `VendorList` SET `Vendor Web UserName`=? WHERE `Vendor ID` = ?", [userName,oldID], (err, result) => {
-            if(err) {
-                console.log(err);
-                setError = true;
-            }else {
-                if(result.affectedRows === 0) {
-                    setError = true;
-                    res.sendStatus(404);
-                }
-            }
-        })
+        dataUpdate = dataUpdate +"`Vendor Web UserName`= '"+ userName+"',";
     }
 
     if ((req.body["pwdcheck"] === "on")) {
         const password = req.body["password"];
-        db.query("UPDATE `VendorList` SET `Vendor Web PWD`=? WHERE `Vendor ID` = ?", [password,oldID], (err, result) => {
-            if(err) {
-                console.log(err);
-                setError = true;
-            }else {
-                if(result.affectedRows === 0) {
-                    setError = true;
-                    res.sendStatus(404);
-                }
-            }
-        })
+        dataUpdate = dataUpdate +"`Vendor Web PWD`= '"+password+"',";
     }
 
     if (req.body["notecheck"] === "on"){
         const note = req.body["vendornote"];
-        db.query("UPDATE `VendorList` SET `Note`=? WHERE `Vendor ID` = ?", [note,oldID], (err, result) => {
-            if(err) {
-                console.log(err);
-                setError = true;
-            }else {
-                if(result.affectedRows === 0) {
-                    setError = true;
-                    res.sendStatus(404);
-                }
-            }
-        })
+        dataUpdate = dataUpdate +"`Note`= '"+note+"',";
     }
 
     if ((req.body["contactcheck"] === "on")) {
         const contact = req.body["contact"];
-        db.query("UPDATE `VendorList` SET `Vendor Contact`=? WHERE `Vendor ID` = ?", [contact,oldID], (err, result) => {
-            if(err) {
-                console.log(err);
-                setError = true;
-            }else {
-                if(result.affectedRows === 0) {
-                    setError = true;
-                    res.sendStatus(404);
-                }
+        dataUpdate = dataUpdate +"`Contact`= '"+contact+"',";
+    }
+
+    try {
+        const resultData = db.query("UPDATE `VendorList` SET "+dataUpdate.slice(0,-1)+" WHERE `Vendor ID` = "+oldID, (err, result) => {
+            if(result) { 
+                res.status(200).send({"message":"Data Updated Successfully"})
             }
-        })
+        });
+
+    } catch (err) {
+        console.log(err);
+        if (err instanceof Errors.NotFound)
+            return res.status(HttpStatus.NOT_FOUND).send({ message: err.message }); // 404
+        
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ error: err, message: err.message }); // 500
     }
 
 })
@@ -371,7 +316,7 @@ app.get('/ecollections',(req, res) => {
 
 // Get all 973 Collections
 app.get('/all973collections',(req, res) => {
-    sql = "SELECT `CollectionName`, 'P' AS `P/E` FROM `973P-CollectionName` Union SELECT 	`973Value` AS `CollectionName`, 'E' AS `P/E` FROM `973E-CollectionName` Order by `CollectionName`";
+    sql = "SELECT `CollectionName`, 'P' AS `P/E` FROM `973P-CollectionName` Union SELECT `973Value` AS `CollectionName`, 'E' AS `P/E` FROM `973E-CollectionName` Order by `CollectionName`";
     db.query( sql, (err, result) => {
         if(err) {
             console.log(err)
@@ -385,85 +330,48 @@ app.get('/all973collections',(req, res) => {
 app.post('/ecollections-edit', (req, res) => {
 
     const oldID = req.body["oldID"];
-    let setError = false;
+    let dataUpdate = "";
 
     if ( (req.body["namecheck"] === "on") & (req.body["e973name"]!="") ) {
         const eName = req.body["e973name"];
-        db.query("UPDATE `973E-CollectionName` SET `973Value`=? WHERE `973Value` = ?", [eName,oldID], (err, result) => {
-            if(err) {
-                console.log(err);
-                setError = true;
-                res.sendStatus(500);
-            } else {
-                
-                if(result.affectedRows === 0) {
-                    setError = true;
-                }
-            }
-        })
+        dataUpdate = dataUpdate + "`973Value`= '"+eName+"',";
     }
+
     if ((req.body["bibcheck"] === "on") & (req.body["e973bib"]!=3) ){
         const bib = req.body["e973bib"];
-        db.query("UPDATE `973E-CollectionName` SET `973inAllBIB`=? WHERE `973Value` = ?", [bib,oldID], (err, result) => {
-            if(err) {
-                console.log(err);
-                setError = true;
-                res.sendStatus(500)
-            } else {
-                if(result.affectedRows === 0) {
-                    setError = true;
-                }
-            }
-        })
+        dataUpdate = dataUpdate + "`973inAllBIB`= '"+bib+"',";
     }
     
     if ((req.body["nrcheck"] === "on") & (req.body["e973nr"]!=3) ){
         const nr = req.body["e973nr"];
-        db.query("UPDATE `973E-CollectionName` SET `973NormRule`=? WHERE `973Value` = ?", [nr,oldID], (err, result) => {
-            if(err) {
-                console.log(err);
-                setError = true;
-            }else {
-                if(result.affectedRows === 0) {
-                    setError = true;
-                }
-            }
-        })
+        dataUpdate = dataUpdate + "`973NormRule`='"+nr+"',";
     }
 
     if ((req.body["izcheck"] === "on") & (req.body["e973iz"]!=3)) {
         const iz = req.body["e973iz"];
-        db.query("UPDATE `973E-CollectionName` SET `IZonly?`=? WHERE `973Value` = ?", [iz,oldID], (err, result) => {
-            if(err) {
-                console.log(err);
-                setError = true;
-            }else {
-                if(result.affectedRows === 0) {
-                    setError = true;
-                }
-            }
-        })
+        dataUpdate = dataUpdate + "`IZonly?`='"+iz+"',";
     }
 
     if (req.body["notecheck"] === "on"){
         const note = req.body["e973note"];
-        db.query("UPDATE `973E-CollectionName` SET `Note`=? WHERE `973Value` = ?", [note,oldID], (err, result) => {
-            if(err) {
-                console.log(err);
-                setError = true;
-            }else {
-                if(result.affectedRows === 0) {
-                    setError = true;
-                }
-            }
-        })
+        dataUpdate = dataUpdate + "`Note`='"+note+"',";
     }
 
-    if (setError) {
-        res.sendStatus(404);
-    } else {
-        res.sendStatus(200);
-    }   
+    try {
+        const resultData = db.query("UPDATE `973E-CollectionName` SET "+dataUpdate.slice(0,-1)+" WHERE `973Value` = \""+oldID+"\"", (err, result) => {
+            if(result) { 
+                res.status(200).send({"message":"Data Updated Successfully"})
+            }
+        });
+
+    } catch (err) {
+        console.log(err);
+        if (err instanceof Errors.NotFound)
+            return res.status(HttpStatus.NOT_FOUND).send({ message: err.message }); // 404
+        
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ error: err, message: err.message }); // 500
+    }
+
 })
 
 // Delete E Collection Item of 973
@@ -503,37 +411,31 @@ app.post('/ecollections-add', async (req, res) => {
 app.post('/pcollections-edit', async (req, res) => {
 
     const oldID = req.body["oldID"];
-    let setError = false;
+    let dataUpdate = "";
 
     if ( (req.body["namecheck"] === "on") & (req.body["p973name"]!="") ) {
         const eName = req.body["p973name"];
-        await db.query("UPDATE `973P-CollectionName` SET `CollectionName`=? WHERE `CollectionName` = ?", [eName,oldID], (err, result) => {
-            if(err) {
-                console.log(err);
-                setError = true;
-                res.sendStatus(500);
-            } else {
-                if(result.affectedRows === 0) {
-                    setError = true;
-                    res.sendStatus(404);
-                }
-            }
-        })
+        dataUpdate = dataUpdate + "`CollectionName`='"+eName+"',";
     }
     
     if (req.body["notecheck"] === "on"){
         const note = req.body["p973note"];
-        db.query("UPDATE `973P-CollectionName` SET `Note`=? WHERE `CollectionName` = ?", [note,oldID], (err, result) => {
-            if(err) {
-                console.log(err);
-                setError = true;
-            }else {
-                if(result.affectedRows === 0) {
-                    setError = true;
-                    res.sendStatus(404);
-                }
+        dataUpdate = dataUpdate +"`Note`= '"+note+"',"; 
+    }
+
+    try {
+        const resultData = db.query("UPDATE `973P-CollectionName` SET "+dataUpdate.slice(0,-1)+" WHERE `CollectionName` = \""+oldID+"\"", (err, result) => {
+            if(result) { 
+                res.status(200).send({"message":"Data Updated Successfully"})
             }
-        })
+        });
+
+    } catch (err) {
+        console.log(err);
+        if (err instanceof Errors.NotFound)
+            return res.status(HttpStatus.NOT_FOUND).send({ message: err.message }); // 404
+        
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ error: err, message: err.message }); // 500
     }
 
 })
@@ -567,6 +469,82 @@ app.post('/pcollections-add', async (req, res) => {
     
 })
 
+// Get Alma Details - In Progress
+app.get('/search-alma-api/:value', async (req, res) => {
+   
+    let collectionId = req.params.value;
+    console.log(collectionId);
+    
+    let alma_url = "https://sddmecbcll.execute-api.us-west-2.amazonaws.com/almaws/v1/electronic/e-collections/"+collectionId+"?apikey="+process.env.ALMA_API_KEY;
+
+    // try {
+    //     const resultData = await axios.get(alma_url);
+        
+    //     responseData = resultData.data;
+
+    //     var obj = new Object();
+
+    //     obj.name = responseData.public_name;
+
+    //     obj.numport = responseData.portfolios.value;
+
+    //     if (responseData.access_type.value == "current") {
+    //         obj.perp="N";
+    //     } else{
+    //         obj.perp="Y";
+    //     };
+
+    //     if (responseData.type.value == "0") {
+    //         obj.aggre="N";
+    //     } else{
+    //         obj.aggre="Y";
+    //     };
+
+    //     if (responseData.free.value == "0") {
+    //         obj.free="N";
+    //     } else{
+    //         obj.free="Y";
+    //     };
+
+    //     if (responseData.is_local != true) {
+    //         obj.iz ="N";
+    //     } else{
+    //         obj.iz ="Y";
+    //     };
+    //     if (responseData.proxy_enabled.value == "false") {
+    //         obj.proxy="N";
+    //     } else{
+    //         obj.proxy = "Y";
+    //     };
+
+    //     if (responseData.cdi_info == {}) {
+    //         obj.cdi ="N";
+    //     } else{
+    //         obj.cdi = "Y";
+    //     };
+
+    //     obj.po = responseData.po_line.value;
+
+    //     obj.interface = responseData.interface.name;
+
+    //     obj.internal_des = responseData.internal_description;
+
+    //     obj.pub_note = responseData.public_note;
+
+    //     obj.des = responseData.description;
+
+    //     console.log(obj);
+
+    //     res.status(200).send(obj);
+
+    // } catch (err) {
+    //     console.log(err);
+    //     if (err instanceof Errors.NotFound)
+    //         return res.status(HttpStatus.NOT_FOUND).send({ message: err.message }); // 404
+        
+    //     return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ error: err, message: err.message }); // 500
+    // }
+})
 
 // Start server
 const PORT = process.env.PORT || 3001;
