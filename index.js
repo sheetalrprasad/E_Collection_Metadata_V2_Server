@@ -8,8 +8,11 @@ require('dotenv').config()
 const axios = require('axios')
 
 const cors = require('cors')
+const { APIError } = require('rest-api-errors')
 
 const whitelist = ["http://localhost:3000"]
+
+const API_TOKEN = process.env.ALMA_API_KEY;
 
 // Setting up CORS
 const corsOptions = {
@@ -359,7 +362,7 @@ app.post('/ecollections-edit', (req, res) => {
 
     try {
         const resultData = db.query("UPDATE `973E-CollectionName` SET "+dataUpdate.slice(0,-1)+" WHERE `973Value` = \""+oldID+"\"", (err, result) => {
-            if(result) { 
+            if(resultData) { 
                 res.status(200).send({"message":"Data Updated Successfully"})
             }
         });
@@ -425,7 +428,7 @@ app.post('/pcollections-edit', async (req, res) => {
 
     try {
         const resultData = db.query("UPDATE `973P-CollectionName` SET "+dataUpdate.slice(0,-1)+" WHERE `CollectionName` = \""+oldID+"\"", (err, result) => {
-            if(result) { 
+            if(resultData) { 
                 res.status(200).send({"message":"Data Updated Successfully"})
             }
         });
@@ -470,80 +473,101 @@ app.post('/pcollections-add', async (req, res) => {
 })
 
 // Get Alma Details - In Progress
-app.get('/search-alma-api/:value', async (req, res) => {
+app.post('/search-alma-api/', async (req, res) => {
    
-    let collectionId = req.params.value;
-    console.log(collectionId);
+    let { almaid } = req.body;
+    let collectionId = almaid;
     
-    let alma_url = "https://sddmecbcll.execute-api.us-west-2.amazonaws.com/almaws/v1/electronic/e-collections/"+collectionId+"?apikey="+process.env.ALMA_API_KEY;
+    console.log(collectionId);
+    let resultData = "";
+    
+    let alma_url = "https://sddmecbcll.execute-api.us-west-2.amazonaws.com/almaws/v1/electronic/e-collections/"+collectionId+"?apikey="+API_TOKEN;
+    let service_alma_url = "https://sddmecbcll.execute-api.us-west-2.amazonaws.com/almaws/v1/electronic/e-collections/"+collectionId+"/e-services?apikey="+API_TOKEN;
 
-    // try {
-    //     const resultData = await axios.get(alma_url);
+    try {
+        const responseAlma = await axios.get(alma_url);
+        const responseService = await axios.get(service_alma_url);
         
-    //     responseData = resultData.data;
+        responseAlmaData = responseAlma.data;
+        responseServiceData = responseService.data;
 
-    //     var obj = new Object();
+        var obj = new Object();
+        obj.name = responseAlmaData.public_name;
+        obj.numport = responseAlmaData.portfolios.value;
 
-    //     obj.name = responseData.public_name;
+        if (responseAlmaData.access_type.value == "current") {
+            obj.perp="N";
+        } else{
+            obj.perp="Y";
+        };
 
-    //     obj.numport = responseData.portfolios.value;
+        if (responseAlmaData.type.value == "0") {
+            obj.aggre="N";
+        } else{
+            obj.aggre="Y";
+        };
 
-    //     if (responseData.access_type.value == "current") {
-    //         obj.perp="N";
-    //     } else{
-    //         obj.perp="Y";
-    //     };
+        if (responseAlmaData.free.value == "0") {
+            obj.free="N";
+        } else{
+            obj.free="Y";
+        };
 
-    //     if (responseData.type.value == "0") {
-    //         obj.aggre="N";
-    //     } else{
-    //         obj.aggre="Y";
-    //     };
+        if (responseAlmaData.is_local != true) {
+            obj.iz ="N";
+        } else{
+            obj.iz ="Y";
+        };
+        if (responseAlmaData.proxy_enabled.value == "false") {
+            obj.proxy="N";
+        } else{
+            obj.proxy = "Y";
+        };
 
-    //     if (responseData.free.value == "0") {
-    //         obj.free="N";
-    //     } else{
-    //         obj.free="Y";
-    //     };
+        if (responseAlmaData.cdi_info == {}) {
+            obj.cdi ="N";
+        } else{
+            obj.cdi = "Y";
+        };
 
-    //     if (responseData.is_local != true) {
-    //         obj.iz ="N";
-    //     } else{
-    //         obj.iz ="Y";
-    //     };
-    //     if (responseData.proxy_enabled.value == "false") {
-    //         obj.proxy="N";
-    //     } else{
-    //         obj.proxy = "Y";
-    //     };
+        obj.po = responseAlmaData.po_line.value;
+        obj.interface = responseAlmaData.interface.name;
+        obj.internal_des = responseAlmaData.internal_description;
+        obj.pub_note = responseAlmaData.public_note;
+        obj.des = responseAlmaData.description;
 
-    //     if (responseData.cdi_info == {}) {
-    //         obj.cdi ="N";
-    //     } else{
-    //         obj.cdi = "Y";
-    //     };
+        obj.sernum = responseServiceData.electronic_service.length;
+        obj.serviceData = [];
+        let counter =0;
+        var serviceData = new Object();
 
-    //     obj.po = responseData.po_line.value;
+        while(counter < obj.sernum) {
+            if(responseServiceData.electronic_service[counter].activation_status.desc == "Available") {
+                serviceData.ser1vail = "Y";
+            } else {
+                serviceData.ser1vail = "N";
+            }
 
-    //     obj.interface = responseData.interface.name;
+            serviceData.ser1des = responseServiceData.electronic_service[counter].public_description;
+            serviceData.ser1num = responseServiceData.electronic_service[counter].portfolios.value;
 
-    //     obj.internal_des = responseData.internal_description;
-
-    //     obj.pub_note = responseData.public_note;
-
-    //     obj.des = responseData.description;
-
-    //     console.log(obj);
-
-    //     res.status(200).send(obj);
-
-    // } catch (err) {
-    //     console.log(err);
-    //     if (err instanceof Errors.NotFound)
-    //         return res.status(HttpStatus.NOT_FOUND).send({ message: err.message }); // 404
+            obj.serviceData.push(serviceData);
+            counter+=1;
+        }
         
-    //     return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ error: err, message: err.message }); // 500
-    // }
+        console.log(obj);
+        let data = JSON.stringify(obj);
+        return res.status(200).send(data);
+    } catch (err) {
+        console.log(err);
+        if (err instanceof APIError) {
+            return res.status(err.status).send({ code: err.code, message: err.message });
+        } else {
+            return res.sendStatus(400);
+        }
+    }
+        
+
 })
 
 // Start server
