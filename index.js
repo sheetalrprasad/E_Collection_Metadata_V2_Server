@@ -543,18 +543,18 @@ app.post('/search-alma-api/', async (req, res) => {
 
         while(counter < obj.sernum) {
             if(responseServiceData.electronic_service[counter].activation_status.desc == "Available") {
-                serviceData.ser1vail = "Y";
+                serviceData.servail = "Y";
             } else {
-                serviceData.ser1vail = "N";
+                serviceData.servail = "N";
             }
 
-            serviceData.ser1des = responseServiceData.electronic_service[counter].public_description;
-            serviceData.ser1num = responseServiceData.electronic_service[counter].portfolios.value;
+            serviceData.serdes = responseServiceData.electronic_service[counter].public_description;
+            serviceData.sernum = responseServiceData.electronic_service[counter].portfolios.value;
 
             obj.serviceData.push(serviceData);
             counter+=1;
         }
-        
+
         console.log(obj);
         let data = JSON.stringify(obj);
         return res.status(200).send(data);
