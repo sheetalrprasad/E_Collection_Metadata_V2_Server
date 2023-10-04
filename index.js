@@ -472,14 +472,11 @@ app.post('/pcollections-add', async (req, res) => {
     
 })
 
-// Get Alma Details - In Progress
+// Get Alma Details
 app.post('/search-alma-api/', async (req, res) => {
    
     let { almaid } = req.body;
     let collectionId = almaid;
-    
-    console.log(collectionId);
-    let resultData = "";
     
     let alma_url = "https://sddmecbcll.execute-api.us-west-2.amazonaws.com/almaws/v1/electronic/e-collections/"+collectionId+"?apikey="+API_TOKEN;
     let service_alma_url = "https://sddmecbcll.execute-api.us-west-2.amazonaws.com/almaws/v1/electronic/e-collections/"+collectionId+"/e-services?apikey="+API_TOKEN;
@@ -541,6 +538,7 @@ app.post('/search-alma-api/', async (req, res) => {
         let counter =0;
         var serviceData = new Object();
 
+        console.log(responseServiceData.electronic_service);
         while(counter < obj.sernum) {
             if(responseServiceData.electronic_service[counter].activation_status.desc == "Available") {
                 serviceData.servail = "Y";
@@ -552,10 +550,10 @@ app.post('/search-alma-api/', async (req, res) => {
             serviceData.sernum = responseServiceData.electronic_service[counter].portfolios.value;
 
             obj.serviceData.push(serviceData);
+            serviceData = new Object();
             counter+=1;
         }
 
-        console.log(obj);
         let data = JSON.stringify(obj);
         return res.status(200).send(data);
     } catch (err) {
