@@ -128,7 +128,7 @@ app.post("/allcollections-edit", async (req, res) => {
     let dataUpdate = "";
 
     if ((req.body["namecheck"] === "on") & (req.body["ename"]!="")){
-        dataUpdate = dataUpdate + "`Collection Name`='"+req.body["ename"]+"',";
+        dataUpdate = dataUpdate + "`Collection Name`= '"+req.body["ename"]+"',";
     }
     if(req.body["resourcecheck"] === "on"){
         dataUpdate = dataUpdate + "`Resource Type`='"+req.body["resourceType"]+"',";
@@ -143,45 +143,44 @@ app.post("/allcollections-edit", async (req, res) => {
         dataUpdate = dataUpdate + "`Active?`="+req.body["active"]+",";
     }
     if(req.body["perpcheck"] === "on"){
-        dataUpdate = dataUpdate + "`Perpetual?`="+req.body["perpetual"]+",";
+        dataUpdate = dataUpdate + "`Perpetual?`= "+req.body["perpetual"]+",";
     }
     if(req.body["aggcheck"] === "on"){
-        dataUpdate = dataUpdate + "`Aggregator?`="+req.body["aggregator"]+",";
+        dataUpdate = dataUpdate + "`Aggregator?`= "+req.body["aggregator"]+",";
     }
     if(req.body["datasynccheck"] === "on"){
-        dataUpdate = dataUpdate + "`Data Sync?`="+req.body["datasync"]+",";
+        dataUpdate = dataUpdate + "`Data Sync?`= "+req.body["datasync"]+",";
     }
     if(req.body["oacheck"] === "on"){
-        dataUpdate = dataUpdate + "`OA?`="+req.body["oa"]+",";
+        dataUpdate = dataUpdate + "`OA?`= "+req.body["oa"]+",";
     }
     if(req.body["reclamationcheck"] === "on"){
-        dataUpdate = dataUpdate + "`Reclamation?`="+req.body["reclamation"]+",";
+        dataUpdate = dataUpdate + "`Reclamation?`= "+req.body["reclamation"]+",";
     }
     if(req.body["vendorcheck"] === "on"){
-        dataUpdate = dataUpdate + "`Vendor`='"+req.body["vendor"]+"',";
+        dataUpdate = dataUpdate + "`Vendor`= '"+req.body["vendor"]+"',";
     }
     if(req.body["notecheck"] === "on"){
-        dataUpdate = dataUpdate + "`Note`='"+req.body["enote"]+"',";
+        dataUpdate = dataUpdate + "`Note`= '"+req.body["enote"]+"',";
     }
     if(req.body["idcheck"] === "on"){
         dataUpdate = dataUpdate + "`Collection ID`="+req.body["eid"]+" ";
     }
 
-
     try {
-        const resultData = db.query("UPDATE `AllEbookCollections` SET "+dataUpdate.slice(0,-1)+" WHERE `Collection ID` = "+oldID, (err, result) => {
-            if(result) { 
-                res.status(200).send({"message":"Data Updated Successfully"})
+        db.query("UPDATE `AllEbookCollections` SET "+dataUpdate.slice(0,-1)+" WHERE `Collection ID` = "+oldID, (err, result) => {
+            if (err){
+                console.log(err);
+                return res.status(400).send({ code: err.code, message: err.sqlMessage });
             }
         });
 
     } catch (err) {
         console.log(err);
-        if (err instanceof Errors.NotFound)
-            return res.status(HttpStatus.NOT_FOUND).send({ message: err.message }); // 404
-        
-        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ error: err, message: err.message }); // 500
+        return res.sendStatus(400);
     }
+
+    res.status(200).send({"message":"Data Updated Successfully"});
 
 })
 
@@ -369,10 +368,11 @@ app.post('/ecollections-edit', (req, res) => {
 
     } catch (err) {
         console.log(err);
-        if (err instanceof Errors.NotFound)
-            return res.status(HttpStatus.NOT_FOUND).send({ message: err.message }); // 404
-        
-        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ error: err, message: err.message }); // 500
+        if (err instanceof APIError) {
+            return res.status(err.status).send({ code: err.code, message: err.message });
+        } else {
+            return res.sendStatus(400);
+        }
     }
 
 })
@@ -435,10 +435,11 @@ app.post('/pcollections-edit', async (req, res) => {
 
     } catch (err) {
         console.log(err);
-        if (err instanceof Errors.NotFound)
-            return res.status(HttpStatus.NOT_FOUND).send({ message: err.message }); // 404
-        
-        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ error: err, message: err.message }); // 500
+        if (err instanceof APIError) {
+            return res.status(err.status).send({ code: err.code, message: err.message });
+        } else {
+            return res.sendStatus(400);
+        }
     }
 
 })
