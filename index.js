@@ -13,6 +13,11 @@ const { APIError } = require('rest-api-errors')
 const whitelist = ["http://localhost:3000"]
 
 const API_TOKEN = process.env.ALMA_API_KEY;
+const backend_user = process.env.user;
+const backend_password = process.env.password;
+const backend_host = process.env.host;
+const backend_database = process.env.database;
+
 
 // Setting up CORS
 const corsOptions = {
@@ -44,10 +49,10 @@ app.use(session({
 
 // Setting up MySQL
 const db = mysql.createConnection({
-    user: 'metadata_sp',
-    host: 'rohancp.sdsu.edu',
-    password: 'Srp##170895',
-    database: 'metadata_ebook_collection_test',
+    user: backend_user,
+    host: backend_host,
+    password: backend_password,
+    database: backend_database,
 });
 
 
