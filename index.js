@@ -94,10 +94,13 @@ app.get('/allcollections',(req, res) => {
 //Add a new all e-collections
 app.post('/allcollections-add',(req, res) => {
 
-    let { collectionID, collectionName, resourceType, bibSource, updateFreq, active, perpetual, aggregator, datasync, oa, reclamation, collectionVendor, collectionNotes } = req.body;
+    let { collectionID, collectionName, resourceType, bibSource, updateFreq, po, active, perpetual, aggregator, datasync, oa, reclamation, collectionVendor, lendable, collectionNotes } = req.body;
     collectionID = BigInt(collectionID);
 
-    let sql_query = "INSERT INTO `AllEbookCollections` (`Collection ID`, `Collection Name`, `Resource Type`, `Bib Source`, `Update Frequency`, `Active?`, `Perpetual?`, `Aggregator?`, `Data Sync?`, `OA?`, `Reclamation?`, `Vendor`, `Note`) SELECT `Collection ID`, `Collection Name`, `Resource Type`, `Bib Source`, `Update Frequency`, `Active?`, `Perpetual?`, `Aggregator?`, `Data Sync?`, `OA?`, `Reclamation?`, `Vendor`, `Note` FROM (SELECT "+collectionID+" AS `Collection ID`, '"+collectionName+"' AS `Collection Name`, '"+resourceType+"' AS `Resource Type`, '"+bibSource+"' AS `Bib Source`, '"+updateFreq+"' AS `Update Frequency`, "+active+" AS `Active?`,"+perpetual+" AS `Perpetual?`, "+aggregator+" AS `Aggregator?`, "+datasync+" AS `Data Sync?`, "+oa+" AS `OA?`, "+reclamation+" AS `Reclamation?`, '"+collectionVendor+"' AS `Vendor`, '"+collectionNotes+"' AS `Note`) AS dataSet1";
+    console.log(req.body);
+
+
+    let sql_query = "INSERT INTO `AllEbookCollections` (`Collection ID`, `Collection Name`, `Resource Type`, `Bib Source`, `Update Frequency`, `PO Linked?`, `Active?`, `Perpetual?`, `Aggregator?`, `Data Sync?`, `OA?`, `Reclamation?`, `Vendor`, `Lendable Note`, `Note`) SELECT `Collection ID`, `Collection Name`, `Resource Type`, `Bib Source`, `Update Frequency`, `PO Linked?`, `Active?`, `Perpetual?`, `Aggregator?`, `Data Sync?`, `OA?`, `Reclamation?`, `Vendor`,`Lendable Note`, `Note` FROM (SELECT "+collectionID+" AS `Collection ID`, '"+collectionName+"' AS `Collection Name`, '"+resourceType+"' AS `Resource Type`, '"+bibSource+"' AS `Bib Source`, '"+updateFreq+"' AS `Update Frequency`, "+po+" AS `PO Linked?`, "+active+" AS `Active?`,"+perpetual+" AS `Perpetual?`, "+aggregator+" AS `Aggregator?`, "+datasync+" AS `Data Sync?`, "+oa+" AS `OA?`, "+reclamation+" AS `Reclamation?`, '"+collectionVendor+"' AS `Vendor`, '"+lendable+"' AS `Lendable Note`, '"+collectionNotes+"' AS `Note`) AS dataSet1";
 
     db.query(sql_query, (err, result) => {
         if(err) {
@@ -169,7 +172,13 @@ app.post("/allcollections-edit", async (req, res) => {
         dataUpdate = dataUpdate + "`Note`= '"+req.body["enote"]+"',";
     }
     if(req.body["idcheck"] === "on"){
-        dataUpdate = dataUpdate + "`Collection ID`="+req.body["eid"]+" ";
+        dataUpdate = dataUpdate + "`Collection ID`="+req.body["eid"]+", ";
+    }
+    if(req.body["pocheck"] === "on"){
+        dataUpdate = dataUpdate + "`PO Linked?`="+req.body["po"]+", ";
+    }
+    if(req.body["lendablecheck"] === "on"){
+        dataUpdate = dataUpdate + "`Lendable Note`='"+req.body["lendable"]+"' ";
     }
 
     try {
@@ -573,6 +582,7 @@ app.post('/search-alma-api/', async (req, res) => {
         
 
 })
+
 
 // Start server
 const PORT = process.env.PORT || 3001;
