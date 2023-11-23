@@ -10,7 +10,7 @@ const axios = require('axios')
 const cors = require('cors')
 const { APIError } = require('rest-api-errors')
 
-const whitelist = ["http://localhost:3000"]
+const whitelist = ["http://localhost:3000", "https://metadata.sdsu.edu/"]
 
 const API_TOKEN = process.env.ALMA_API_KEY;
 const backend_user = process.env.user;
@@ -82,7 +82,7 @@ app.post('/auth',(req, res) => {
 
 // Get all e-collections
 app.get('/allcollections',(req, res) => {
-    db.query("SELECT * FROM AllEbookCollections", (err, result) => {
+    db.query("SELECT CAST(`Collection ID` AS VARCHAR(25)) AS `Collection ID`, `Collection Name`, `Resource Type`, `Bib Source`, `Update Frequency`, `PO Linked?`, `Active?`, `Perpetual?`, `Aggregator?`, `Data Sync?`, `OA?`, `Reclamation?`, `Vendor`, `Lendable Note`, `Note` from `AllEbookCollections`", (err, result) => {
         if(err) {
             console.log(err)
         } else {
