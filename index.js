@@ -97,8 +97,8 @@ app.post('/allcollections-add',(req, res) => {
     let { collectionID, collectionName, resourceType, bibSource, updateFreq, po, active, perpetual, aggregator, datasync, oa, reclamation, collectionVendor, lendable, collectionNotes } = req.body;
     collectionID = BigInt(collectionID);
 
-    collectionName = collectionName.replaceAll("'","\'");
-    collectionNotes = collectionNotes.replaceAll("'","\'");
+    collectionName = collectionName.replaceAll("\'","\\'");
+    collectionNotes = collectionNotes.replaceAll("\'","\\'");
 
 
     let sql_query = "INSERT INTO `AllEbookCollections` (`Collection ID`, `Collection Name`, `Resource Type`, `Bib Source`, `Update Frequency`, `PO Linked?`, `Active?`, `Perpetual?`, `Aggregator?`, `Data Sync?`, `OA?`, `Reclamation?`, `Vendor`, `Lendable Note`, `Note`) SELECT `Collection ID`, `Collection Name`, `Resource Type`, `Bib Source`, `Update Frequency`, `PO Linked?`, `Active?`, `Perpetual?`, `Aggregator?`, `Data Sync?`, `OA?`, `Reclamation?`, `Vendor`,`Lendable Note`, `Note` FROM (SELECT "+collectionID+" AS `Collection ID`, '"+collectionName+"' AS `Collection Name`, '"+resourceType+"' AS `Resource Type`, '"+bibSource+"' AS `Bib Source`, '"+updateFreq+"' AS `Update Frequency`, "+po+" AS `PO Linked?`, "+active+" AS `Active?`,"+perpetual+" AS `Perpetual?`, "+aggregator+" AS `Aggregator?`, "+datasync+" AS `Data Sync?`, "+oa+" AS `OA?`, "+reclamation+" AS `Reclamation?`, '"+collectionVendor+"' AS `Vendor`, '"+lendable+"' AS `Lendable Note`, '"+collectionNotes+"' AS `Note`) AS dataSet1";
@@ -137,7 +137,7 @@ app.post("/allcollections-edit", async (req, res) => {
 
     if ((req.body["namecheck"] === "on") & (req.body["ename"]!="")){
         let collectionName = req.body["ename"];
-        collectionName = collectionName.replaceAll("'","\'");
+        collectionName = collectionName.replaceAll("\'","\\'");
         dataUpdate = dataUpdate + "`Collection Name`= '"+collectionName+"',";
     }
     if(req.body["resourcecheck"] === "on"){
@@ -240,8 +240,8 @@ app.delete('/vendors-delete/:value', async (req, res) => {
 
 app.post('/vendors-add',(req, res) => {
     const { vendorId, vendorName, vendorWeb, userName, password, note, contact } = req.body;
-    vendorName = vendorName.replaceAll("'","\'");
-    note = note.replaceAll("'","\'");
+    vendorName = vendorName.replaceAll("\'","\\'");
+    note = note.replaceAll("\'","\\'");
     
     query_stmt = "INSERT INTO `VendorList` (`Vendor ID`, `Vendor Name`, `Vendor Web`, `Vendor Web UserName`, `vendor Web PWD`, `Note`, `Vendor Contact`) VALUES (?, ?, ?, ?, ?, ?, ?)";    
     
@@ -289,7 +289,7 @@ app.post("/vendors-edit", (req, res) => {
 
     if (req.body["notecheck"] === "on"){
         const note = req.body["vendornote"];
-        note = note.replaceAll("'","\'");
+        note = note.replaceAll("\'","\\'");
         dataUpdate = dataUpdate +"`Note`= '"+note+"',";
     }
 
@@ -358,7 +358,7 @@ app.post('/ecollections-edit', (req, res) => {
 
     if ( (req.body["namecheck"] === "on") & (req.body["e973name"]!="") ) {
         const eName = req.body["e973name"];
-        eName = eName.replaceAll("'","\'");
+        eName = eName.replaceAll("\'","\\'");
         dataUpdate = dataUpdate + "`973Value`= '"+eName+"',";
     }
 
@@ -379,7 +379,7 @@ app.post('/ecollections-edit', (req, res) => {
 
     if (req.body["notecheck"] === "on"){
         const note = req.body["e973note"];
-        note = note.replaceAll("'","\'");
+        note = note.replaceAll("\'","\\'");
         dataUpdate = dataUpdate + "`Note`='"+note+"',";
     }
 
@@ -422,8 +422,8 @@ app.post('/ecollections-add', async (req, res) => {
     const iz = req.body["e973iz"];
     const note =  req.body["e973note"];
 
-    eName = eName.replaceAll("'","\'");
-    note = note.replaceAll("'","\'");
+    eName = eName.replaceAll("\'","\\'");
+    note = note.replaceAll("\'","\\'");
 
     note = note!==""?note["e973note"]:"\'\'";
 
@@ -449,13 +449,13 @@ app.post('/pcollections-edit', async (req, res) => {
 
     if ( (req.body["namecheck"] === "on") & (req.body["p973name"]!="") ) {
         const eName = req.body["p973name"];
-        eName = eName.replaceAll("'","\'");
+        eName = eName.replaceAll("\'","\\'");
         dataUpdate = dataUpdate + "`CollectionName`='"+eName+"',";
     }
     
     if (req.body["notecheck"] === "on"){
         const note = req.body["p973note"];
-        note = note.replaceAll("'","\'");
+        note = note.replaceAll("\'","\\'");
         dataUpdate = dataUpdate +"`Note`= '"+note+"',"; 
     }
 
@@ -493,8 +493,8 @@ app.post('/pcollections-add', async (req, res) => {
 
     const pName = req.body["p973name"];
     const note = req.body["p973note"]!==""?req.body["p973note"]:"\'\'";
-    pName = pName.replaceAll("'","\'");
-    note = note.replaceAll("'","\'");
+    pName = pName.replaceAll("\'","\\'");
+    note = note.replaceAll("\'","\\'");
 
     let sql_query = "INSERT INTO `973P-CollectionName`(`CollectionName`,`Note`) SELECT `CollectionName`,`Note` FROM (SELECT '"+pName+"' AS CollectionName, "+note+" as Note) AS dataSet1";
 
