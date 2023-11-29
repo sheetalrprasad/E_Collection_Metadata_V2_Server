@@ -97,7 +97,8 @@ app.post('/allcollections-add',(req, res) => {
     let { collectionID, collectionName, resourceType, bibSource, updateFreq, po, active, perpetual, aggregator, datasync, oa, reclamation, collectionVendor, lendable, collectionNotes } = req.body;
     collectionID = BigInt(collectionID);
 
-    console.log(req.body);
+    collectionName = collectionName.replaceAll("'","\'");
+    collectionNotes = collectionNotes.replaceAll("'","\'");
 
 
     let sql_query = "INSERT INTO `AllEbookCollections` (`Collection ID`, `Collection Name`, `Resource Type`, `Bib Source`, `Update Frequency`, `PO Linked?`, `Active?`, `Perpetual?`, `Aggregator?`, `Data Sync?`, `OA?`, `Reclamation?`, `Vendor`, `Lendable Note`, `Note`) SELECT `Collection ID`, `Collection Name`, `Resource Type`, `Bib Source`, `Update Frequency`, `PO Linked?`, `Active?`, `Perpetual?`, `Aggregator?`, `Data Sync?`, `OA?`, `Reclamation?`, `Vendor`,`Lendable Note`, `Note` FROM (SELECT "+collectionID+" AS `Collection ID`, '"+collectionName+"' AS `Collection Name`, '"+resourceType+"' AS `Resource Type`, '"+bibSource+"' AS `Bib Source`, '"+updateFreq+"' AS `Update Frequency`, "+po+" AS `PO Linked?`, "+active+" AS `Active?`,"+perpetual+" AS `Perpetual?`, "+aggregator+" AS `Aggregator?`, "+datasync+" AS `Data Sync?`, "+oa+" AS `OA?`, "+reclamation+" AS `Reclamation?`, '"+collectionVendor+"' AS `Vendor`, '"+lendable+"' AS `Lendable Note`, '"+collectionNotes+"' AS `Note`) AS dataSet1";
@@ -114,8 +115,7 @@ app.post('/allcollections-add',(req, res) => {
 
 app.delete('/allcollections-delete/:value',(req, res) => {
 
-    console.log(req.params.value);
-    let col_Id = req.params.value;
+    let col_Id = BigInt(req.params.value);
 
     query_stmt = "DELETE FROM `AllEbookCollections` WHERE `Collection ID` = ?";
     db.query(query_stmt, [col_Id], (err, result) => {
@@ -132,11 +132,13 @@ app.delete('/allcollections-delete/:value',(req, res) => {
 // All E-collection Edit 
 app.post("/allcollections-edit", async (req, res) => {
     
-    const oldID = Number(req.body["oldID"]);
+    const oldID = BigInt(req.body["oldID"]);
     let dataUpdate = "";
 
     if ((req.body["namecheck"] === "on") & (req.body["ename"]!="")){
-        dataUpdate = dataUpdate + "`Collection Name`= '"+req.body["ename"]+"',";
+        let collectionName = req.body["ename"];
+        collectionName = collectionName.replaceAll("'","\'");
+        dataUpdate = dataUpdate + "`Collection Name`= '"+collectionName+"',";
     }
     if(req.body["resourcecheck"] === "on"){
         dataUpdate = dataUpdate + "`Resource Type`='"+req.body["resourceType"]+"',";
@@ -169,7 +171,9 @@ app.post("/allcollections-edit", async (req, res) => {
         dataUpdate = dataUpdate + "`Vendor`= '"+req.body["vendor"]+"',";
     }
     if(req.body["notecheck"] === "on"){
-        dataUpdate = dataUpdate + "`Note`= '"+req.body["enote"]+"',";
+        let collectionNotes = req.body["enote"];
+        collectionNotes = collectionNotes.replaceAll("\'","\\'");
+        dataUpdate = dataUpdate + "`Note`= '"+collectionNotes+"',";
     }
     if(req.body["idcheck"] === "on"){
         dataUpdate = dataUpdate + "`Collection ID`="+req.body["eid"]+", ";
@@ -180,7 +184,7 @@ app.post("/allcollections-edit", async (req, res) => {
     if(req.body["lendablecheck"] === "on"){
         dataUpdate = dataUpdate + "`Lendable Note`='"+req.body["lendable"]+"' ";
     }
-
+    
     try {
         db.query("UPDATE `AllEbookCollections` SET "+dataUpdate.slice(0,-1)+" WHERE `Collection ID` = "+oldID, (err, result) => {
             if (err){
@@ -224,7 +228,7 @@ app.get('/vendors',(req, res) => {
 // Get all vendors-delete
 app.delete('/vendors-delete/:value', async (req, res) => {
     let data = req.params.value;
-    let vendorId = Number(data.split("&")[0]);
+    let vendorId = BigInt(data.split("&")[0]);
     let vendorName = data.split("&")[1];
     db.query("DELETE FROM `VendorList` WHERE `Vendor Name` = ? AND `Vendor ID` = ?", [vendorName, vendorId], (err, result) => {
         if(err) {
@@ -236,6 +240,8 @@ app.delete('/vendors-delete/:value', async (req, res) => {
 
 app.post('/vendors-add',(req, res) => {
     const { vendorId, vendorName, vendorWeb, userName, password, note, contact } = req.body;
+    vendorName = vendorName.replaceAll("'","\'");
+    note = note.replaceAll("'","\'");
     
     query_stmt = "INSERT INTO `VendorList` (`Vendor ID`, `Vendor Name`, `Vendor Web`, `Vendor Web UserName`, `vendor Web PWD`, `Note`, `Vendor Contact`) VALUES (?, ?, ?, ?, ?, ?, ?)";    
     
@@ -262,6 +268,7 @@ app.post("/vendors-edit", (req, res) => {
 
     if ( (req.body["namecheck"] === "on") & (req.body["name"]!="") ) {
         const vName = req.body["name"];
+        vName = vName.replaceAll("'","\'");
         dataUpdate = dataUpdate + "`Vendor Name` = '"+vName+"',";
     }
 
@@ -282,6 +289,7 @@ app.post("/vendors-edit", (req, res) => {
 
     if (req.body["notecheck"] === "on"){
         const note = req.body["vendornote"];
+        note = note.replaceAll("'","\'");
         dataUpdate = dataUpdate +"`Note`= '"+note+"',";
     }
 
@@ -321,7 +329,7 @@ app.get('/pcollections',(req, res) => {
 
 // Get all E Collections of 973
 app.get('/ecollections',(req, res) => {
-    db.query("SELECT * FROM `973E-CollectionName`", (err, result) => {
+    db.query("SELECT CAST(`CollectionID` AS VARCHAR(25)) AS `CollectionID`, `973Value`, `973inAllBIB`, `973NormRule`, `IZOnly?`, `Note` FROM `973E-CollectionName`", (err, result) => {
         if(err) {
             console.log(err)
         } else {
@@ -345,11 +353,12 @@ app.get('/all973collections',(req, res) => {
 // Update E Collection Item of 973
 app.post('/ecollections-edit', (req, res) => {
 
-    const oldID = req.body["oldID"];
+    const oldID = BigInt(req.body["oldID"]);
     let dataUpdate = "";
 
     if ( (req.body["namecheck"] === "on") & (req.body["e973name"]!="") ) {
         const eName = req.body["e973name"];
+        eName = eName.replaceAll("'","\'");
         dataUpdate = dataUpdate + "`973Value`= '"+eName+"',";
     }
 
@@ -370,6 +379,7 @@ app.post('/ecollections-edit', (req, res) => {
 
     if (req.body["notecheck"] === "on"){
         const note = req.body["e973note"];
+        note = note.replaceAll("'","\'");
         dataUpdate = dataUpdate + "`Note`='"+note+"',";
     }
 
@@ -410,7 +420,14 @@ app.post('/ecollections-add', async (req, res) => {
     const bib = req.body["e973bib"];
     const nr = req.body["e973nr"];
     const iz = req.body["e973iz"];
-    const note = req.body["e973note"]!==""?req.body["e973note"]:"\'\'";
+    const note =  req.body["e973note"];
+
+    eName = eName.replaceAll("'","\'");
+    note = note.replaceAll("'","\'");
+
+    note = note!==""?note["e973note"]:"\'\'";
+
+    
 
     let sql_query = "INSERT INTO `973E-CollectionName`(`CollectionID`,`973Value`,`973inAllBIB`,`973NormRule`,`IZonly?`,`Note`) SELECT `CollectionID`,`973Value`,`973inAllBIB`,`973NormRule`,`IZonly?`,`Note` FROM (SELECT "+e973id+" AS CollectionID, '"+eName+"' AS 973Value, "+bib+" AS 973inAllBIB, "+nr+" AS 973NormRule, "+iz+" AS `IZonly?`, "+note+" as Note) AS dataSet1";
 
@@ -432,11 +449,13 @@ app.post('/pcollections-edit', async (req, res) => {
 
     if ( (req.body["namecheck"] === "on") & (req.body["p973name"]!="") ) {
         const eName = req.body["p973name"];
+        eName = eName.replaceAll("'","\'");
         dataUpdate = dataUpdate + "`CollectionName`='"+eName+"',";
     }
     
     if (req.body["notecheck"] === "on"){
         const note = req.body["p973note"];
+        note = note.replaceAll("'","\'");
         dataUpdate = dataUpdate +"`Note`= '"+note+"',"; 
     }
 
@@ -474,6 +493,8 @@ app.post('/pcollections-add', async (req, res) => {
 
     const pName = req.body["p973name"];
     const note = req.body["p973note"]!==""?req.body["p973note"]:"\'\'";
+    pName = pName.replaceAll("'","\'");
+    note = note.replaceAll("'","\'");
 
     let sql_query = "INSERT INTO `973P-CollectionName`(`CollectionName`,`Note`) SELECT `CollectionName`,`Note` FROM (SELECT '"+pName+"' AS CollectionName, "+note+" as Note) AS dataSet1";
 
@@ -553,7 +574,6 @@ app.post('/search-alma-api/', async (req, res) => {
         let counter =0;
         var serviceData = new Object();
 
-        console.log(responseServiceData.electronic_service);
         while(counter < obj.sernum) {
             if(responseServiceData.electronic_service[counter].activation_status.desc == "Available") {
                 serviceData.servail = "Y";
