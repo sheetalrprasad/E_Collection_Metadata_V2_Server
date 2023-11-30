@@ -12,6 +12,7 @@ const { APIError } = require('rest-api-errors')
 
 const whitelist = ["http://localhost:3000", "https://metadata.sdsu.edu/"]
 
+// Extract all the environment variables from .env file
 const API_TOKEN = process.env.ALMA_API_KEY;
 const backend_user = process.env.user;
 const backend_password = process.env.password;
@@ -36,13 +37,14 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Setting up Session
 app.use(session({
     key: "userId",
     secret: "metadata",
     resave: false,
     saveUninitialized: false,
     cookie: {
-        expires: 60 * 60 * 2,
+        expires: 1000 * 60 * 60 * 2,
     },
 }));
 
@@ -57,7 +59,7 @@ const db = mysql.createConnection({
 
 
 // Login Function
-app.post('/auth',(req, res) => {
+app.post('/server//auth',(req, res) => {
    
     const { user, pwd } = req.body;
     query_stmt = "SELECT Name FROM `User` WHERE Name = ? AND PWD = ?";
@@ -81,7 +83,7 @@ app.post('/auth',(req, res) => {
 
 
 // Get all e-collections
-app.get('/allcollections',(req, res) => {
+app.get('/server/allcollections',(req, res) => {
     db.query("SELECT CAST(`Collection ID` AS VARCHAR(25)) AS `Collection ID`, `Collection Name`, `Resource Type`, `Bib Source`, `Update Frequency`, `PO Linked?`, `Active?`, `Perpetual?`, `Aggregator?`, `Data Sync?`, `OA?`, `Reclamation?`, `Vendor`, `Lendable Note`, `Note` from `AllEbookCollections`", (err, result) => {
         if(err) {
             console.log(err)
@@ -92,7 +94,7 @@ app.get('/allcollections',(req, res) => {
 })
 
 //Add a new all e-collections
-app.post('/allcollections-add',(req, res) => {
+app.post('/server/allcollections-add',(req, res) => {
 
     let { collectionID, collectionName, resourceType, bibSource, updateFreq, po, active, perpetual, aggregator, datasync, oa, reclamation, collectionVendor, lendable, collectionNotes } = req.body;
     collectionID = BigInt(collectionID);
@@ -113,7 +115,8 @@ app.post('/allcollections-add',(req, res) => {
     })
 })
 
-app.delete('/allcollections-delete/:value',(req, res) => {
+// Delete a value from all e-collections
+app.delete('/server/allcollections-delete/:value',(req, res) => {
 
     let col_Id = BigInt(req.params.value);
 
@@ -130,7 +133,7 @@ app.delete('/allcollections-delete/:value',(req, res) => {
 
 
 // All E-collection Edit 
-app.post("/allcollections-edit", async (req, res) => {
+app.post("/server/allcollections-edit", async (req, res) => {
     
     const oldID = BigInt(req.body["oldID"]);
     let dataUpdate = "";
@@ -204,7 +207,7 @@ app.post("/allcollections-edit", async (req, res) => {
 
 
 //Get all vendors name from VendorList
-app.get('/vendors-name',(req, res) => {
+app.get('/server/vendors-name',(req, res) => {
     db.query("SELECT `Vendor Name` FROM VendorList", (err, result) => {
         if(err) {
             console.log(err)
@@ -215,7 +218,7 @@ app.get('/vendors-name',(req, res) => {
 })
 
 // Get all vendors
-app.get('/vendors',(req, res) => {
+app.get('/server/vendors',(req, res) => {
     db.query("SELECT * FROM VendorList", (err, result) => {
         if(err) {
             console.log(err)
@@ -226,7 +229,7 @@ app.get('/vendors',(req, res) => {
 })
 
 // Get all vendors-delete
-app.delete('/vendors-delete/:value', async (req, res) => {
+app.delete('/server/vendors-delete/:value', async (req, res) => {
     let data = req.params.value;
     let vendorId = BigInt(data.split("&")[0]);
     let vendorName = data.split("&")[1];
@@ -238,7 +241,8 @@ app.delete('/vendors-delete/:value', async (req, res) => {
     res.sendStatus(200);
 })
 
-app.post('/vendors-add',(req, res) => {
+// Add Vendor Item
+app.post('/server/vendors-add',(req, res) => {
     const { vendorId, vendorName, vendorWeb, userName, password, note, contact } = req.body;
     vendorName = vendorName.replaceAll("\'","\\'");
     note = note.replaceAll("\'","\\'");
@@ -256,7 +260,7 @@ app.post('/vendors-add',(req, res) => {
 })
 
 // Update Vendor Item
-app.post("/vendors-edit", (req, res) => {
+app.post("/server/vendors-edit", (req, res) => {
     
     const oldID = req.body["oldID"];
     let dataUpdate = "";
@@ -317,7 +321,7 @@ app.post("/vendors-edit", (req, res) => {
 
 
 // Get all P Collections
-app.get('/pcollections',(req, res) => {
+app.get('/server/pcollections',(req, res) => {
     db.query("SELECT * FROM `973P-CollectionName`", (err, result) => {
         if(err) {
             console.log(err)
@@ -328,7 +332,7 @@ app.get('/pcollections',(req, res) => {
 })
 
 // Get all E Collections of 973
-app.get('/ecollections',(req, res) => {
+app.get('/server/ecollections',(req, res) => {
     db.query("SELECT CAST(`CollectionID` AS VARCHAR(25)) AS `CollectionID`, `973Value`, `973inAllBIB`, `973NormRule`, `IZOnly?`, `Note` FROM `973E-CollectionName`", (err, result) => {
         if(err) {
             console.log(err)
@@ -339,7 +343,7 @@ app.get('/ecollections',(req, res) => {
 })
 
 // Get all 973 Collections
-app.get('/all973collections',(req, res) => {
+app.get('/server/all973collections',(req, res) => {
     sql = "SELECT `CollectionName`, 'P' AS `P/E` FROM `973P-CollectionName` Union SELECT `973Value` AS `CollectionName`, 'E' AS `P/E` FROM `973E-CollectionName` Order by `CollectionName`";
     db.query( sql, (err, result) => {
         if(err) {
@@ -351,7 +355,7 @@ app.get('/all973collections',(req, res) => {
 })
 
 // Update E Collection Item of 973
-app.post('/ecollections-edit', (req, res) => {
+app.post('/server/ecollections-edit', (req, res) => {
 
     const oldID = BigInt(req.body["oldID"]);
     let dataUpdate = "";
@@ -402,7 +406,7 @@ app.post('/ecollections-edit', (req, res) => {
 })
 
 // Delete E Collection Item of 973
-app.delete('/ecollections-delete/:value', async (req, res) => {
+app.delete('/server/ecollections-delete/:value', async (req, res) => {
     let e973Val = req.params.value;
     db.query("DELETE FROM `973E-CollectionName` WHERE `973Value` = ?", [e973Val], (err, result) => {
         if(err) {
@@ -413,7 +417,7 @@ app.delete('/ecollections-delete/:value', async (req, res) => {
 })
 
 // Add E Collection Item of 973
-app.post('/ecollections-add', async (req, res) => {
+app.post('/server/ecollections-add', async (req, res) => {
     
     const e973id = BigInt(req.body["e973id"]);
     const eName = req.body["e973name"];
@@ -442,7 +446,7 @@ app.post('/ecollections-add', async (req, res) => {
 })
 
 // Update P Collection Item
-app.post('/pcollections-edit', async (req, res) => {
+app.post('/server/pcollections-edit', async (req, res) => {
 
     const oldID = req.body["oldID"];
     let dataUpdate = "";
@@ -478,7 +482,7 @@ app.post('/pcollections-edit', async (req, res) => {
 })
 
 // Delete P Collection Item
-app.delete('/pcollections-delete/:value', async (req, res) => {
+app.delete('/server/pcollections-delete/:value', async (req, res) => {
     let name = req.params.value;
     db.query("DELETE FROM `973P-CollectionName` WHERE `CollectionName` = ?", [name], (err, result) => {
         if(err) {
@@ -489,7 +493,7 @@ app.delete('/pcollections-delete/:value', async (req, res) => {
 })
 
 // Add P Collection Item
-app.post('/pcollections-add', async (req, res) => {
+app.post('/server/pcollections-add', async (req, res) => {
 
     const pName = req.body["p973name"];
     const note = req.body["p973note"]!==""?req.body["p973note"]:"\'\'";
@@ -509,7 +513,7 @@ app.post('/pcollections-add', async (req, res) => {
 })
 
 // Get Alma Details
-app.post('/search-alma-api/', async (req, res) => {
+app.post('/server/search-alma-api/', async (req, res) => {
    
     let { almaid } = req.body;
     let collectionId = almaid;
@@ -603,6 +607,9 @@ app.post('/search-alma-api/', async (req, res) => {
 
 })
 
+app.get('/server/', function(req, res){
+    res.send("Hello from the root application URL");
+});
 
 // Start server
 const PORT = process.env.PORT || 3001;
