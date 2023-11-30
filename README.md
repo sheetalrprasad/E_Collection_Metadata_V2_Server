@@ -4,7 +4,7 @@
 1. Start Client After this Server. (<a href="https://github.com/sheetalrprasad/E_Collection_Metadata_V2_Client">Client</a>)
 1. Install Node and NPM (https://nodejs.org/en/download)
 2. Clone this project
-3. In the project directory, create .env file and add all variables required
+3. In the project directory, create `.env` file and add all variables required
 4. Check installation    
     `node -v`   
     `npm -v`
