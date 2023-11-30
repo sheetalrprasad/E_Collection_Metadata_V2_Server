@@ -59,7 +59,7 @@ const db = mysql.createConnection({
 
 
 // Login Function
-app.post('/server//auth',(req, res) => {
+app.post('/server/auth',(req, res) => {
    
     const { user, pwd } = req.body;
     query_stmt = "SELECT Name FROM `User` WHERE Name = ? AND PWD = ?";
