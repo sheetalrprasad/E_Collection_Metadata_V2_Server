@@ -10,8 +10,8 @@ const axios = require('axios')
 const cors = require('cors')
 const { APIError } = require('rest-api-errors')
 
-const whitelist = ["https://metadata.sdsu.edu"]
-// const whitelist = ["https://metadata.sdsu.edu/", "http://localhost:3000"] 
+// const whitelist = ["https://metadata.sdsu.edu"]
+const whitelist = ["https://metadata.sdsu.edu", "http://localhost:3000"] 
 
 // Extract all the environment variables from .env file
 const API_TOKEN = process.env.ALMA_API_KEY;
@@ -358,7 +358,8 @@ app.get('/server/all973collections',(req, res) => {
 // Update E Collection Item of 973
 app.post('/server/ecollections-edit', (req, res) => {
 
-    const oldID = BigInt(req.body["oldID"]);
+    // Id is Name
+    const oldID = req.body["oldID"];
     let dataUpdate = "";
 
     if ( (req.body["namecheck"] === "on") & (req.body["e973name"]!="") ) {
@@ -379,7 +380,7 @@ app.post('/server/ecollections-edit', (req, res) => {
 
     if ((req.body["izcheck"] === "on") & (req.body["e973iz"]!=3)) {
         const iz = req.body["e973iz"];
-        dataUpdate = dataUpdate + "`IZonly?`='"+iz+"',";
+        dataUpdate = dataUpdate + "`IZonly?`="+iz+",";
     }
 
     if (req.body["notecheck"] === "on"){
@@ -425,16 +426,12 @@ app.post('/server/ecollections-add', async (req, res) => {
     const bib = req.body["e973bib"];
     const nr = req.body["e973nr"];
     const iz = req.body["e973iz"];
-    var note =  req.body["e973note"];
+    let note =  req.body["e973note"];
 
     eName = eName.replaceAll("\'","\\'");
     note = note.replaceAll("\'","\\'");
 
-    note = note!==""?note["e973note"]:"\'\'";
-
-    
-
-    let sql_query = "INSERT INTO `973E-CollectionName`(`CollectionID`,`973Value`,`973inAllBIB`,`973NormRule`,`IZonly?`,`Note`) SELECT `CollectionID`,`973Value`,`973inAllBIB`,`973NormRule`,`IZonly?`,`Note` FROM (SELECT "+e973id+" AS CollectionID, '"+eName+"' AS 973Value, "+bib+" AS 973inAllBIB, "+nr+" AS 973NormRule, "+iz+" AS `IZonly?`, "+note+" as Note) AS dataSet1";
+    let sql_query = "INSERT INTO `973E-CollectionName`(`CollectionID`,`973Value`,`973inAllBIB`,`973NormRule`,`IZonly?`,`Note`) SELECT `CollectionID`,`973Value`,`973inAllBIB`,`973NormRule`,`IZonly?`,`Note` FROM (SELECT "+e973id+" AS `CollectionID`, '"+eName+"' AS `973Value`, "+bib+" AS `973inAllBIB`, "+nr+" AS `973NormRule`, "+iz+" AS `IZonly?`, '"+note+"' as `Note`) AS dataSet1";
 
     db.query(sql_query, (err, result) => {
         if(err) {
@@ -497,11 +494,11 @@ app.delete('/server/pcollections-delete/:value', async (req, res) => {
 app.post('/server/pcollections-add', async (req, res) => {
 
     var pName = req.body["p973name"];
-    var note = req.body["p973note"]!==""?req.body["p973note"]:"\'\'";
+    var note = req.body["p973note"];
     pName = pName.replaceAll("\'","\\'");
     note = note.replaceAll("\'","\\'");
 
-    let sql_query = "INSERT INTO `973P-CollectionName`(`CollectionName`,`Note`) SELECT `CollectionName`,`Note` FROM (SELECT '"+pName+"' AS CollectionName, "+note+" as Note) AS dataSet1";
+    let sql_query = "INSERT INTO `973P-CollectionName`(`CollectionName`,`Note`) SELECT `CollectionName`,`Note` FROM (SELECT '"+pName+"' AS CollectionName, '"+note+"' as Note) AS dataSet1";
 
     db.query(sql_query, (err, result) => {
         if(err) {
