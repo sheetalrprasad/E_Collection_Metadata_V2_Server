@@ -10,7 +10,7 @@ const axios = require('axios')
 const cors = require('cors')
 const { APIError } = require('rest-api-errors')
 
-const whitelist = ["http://localhost:3000", "https://metadata.sdsu.edu/"]
+const whitelist = ["https://backend.metadata.sdsu.edu"]
 
 // Extract all the environment variables from .env file
 const API_TOKEN = process.env.ALMA_API_KEY;
