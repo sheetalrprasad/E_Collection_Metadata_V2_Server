@@ -10,7 +10,8 @@ const axios = require('axios')
 const cors = require('cors')
 const { APIError } = require('rest-api-errors')
 
-const whitelist = ["https://backend.metadata.sdsu.edu"]
+// const whitelist = ["https://backend.metadata.sdsu.edu"]
+const whitelist = ["https://backend.metadata.sdsu.edu", "http://localhost:3000"] 
 
 // Extract all the environment variables from .env file
 const API_TOKEN = process.env.ALMA_API_KEY;
@@ -243,7 +244,7 @@ app.delete('/server/vendors-delete/:value', async (req, res) => {
 
 // Add Vendor Item
 app.post('/server/vendors-add',(req, res) => {
-    const { vendorId, vendorName, vendorWeb, userName, password, note, contact } = req.body;
+    var { vendorId, vendorName, vendorWeb, userName, password, note, contact } = req.body;
     vendorName = vendorName.replaceAll("\'","\\'");
     note = note.replaceAll("\'","\\'");
     
@@ -271,7 +272,7 @@ app.post("/server/vendors-edit", (req, res) => {
     }
 
     if ( (req.body["namecheck"] === "on") & (req.body["name"]!="") ) {
-        const vName = req.body["name"];
+        var vName = req.body["name"];
         vName = vName.replaceAll("'","\'");
         dataUpdate = dataUpdate + "`Vendor Name` = '"+vName+"',";
     }
@@ -292,7 +293,7 @@ app.post("/server/vendors-edit", (req, res) => {
     }
 
     if (req.body["notecheck"] === "on"){
-        const note = req.body["vendornote"];
+        var note = req.body["vendornote"];
         note = note.replaceAll("\'","\\'");
         dataUpdate = dataUpdate +"`Note`= '"+note+"',";
     }
@@ -361,7 +362,7 @@ app.post('/server/ecollections-edit', (req, res) => {
     let dataUpdate = "";
 
     if ( (req.body["namecheck"] === "on") & (req.body["e973name"]!="") ) {
-        const eName = req.body["e973name"];
+        var eName = req.body["e973name"];
         eName = eName.replaceAll("\'","\\'");
         dataUpdate = dataUpdate + "`973Value`= '"+eName+"',";
     }
@@ -382,7 +383,7 @@ app.post('/server/ecollections-edit', (req, res) => {
     }
 
     if (req.body["notecheck"] === "on"){
-        const note = req.body["e973note"];
+        var note = req.body["e973note"];
         note = note.replaceAll("\'","\\'");
         dataUpdate = dataUpdate + "`Note`='"+note+"',";
     }
@@ -420,11 +421,11 @@ app.delete('/server/ecollections-delete/:value', async (req, res) => {
 app.post('/server/ecollections-add', async (req, res) => {
     
     const e973id = BigInt(req.body["e973id"]);
-    const eName = req.body["e973name"];
+    var eName = req.body["e973name"];
     const bib = req.body["e973bib"];
     const nr = req.body["e973nr"];
     const iz = req.body["e973iz"];
-    const note =  req.body["e973note"];
+    var note =  req.body["e973note"];
 
     eName = eName.replaceAll("\'","\\'");
     note = note.replaceAll("\'","\\'");
@@ -452,13 +453,13 @@ app.post('/server/pcollections-edit', async (req, res) => {
     let dataUpdate = "";
 
     if ( (req.body["namecheck"] === "on") & (req.body["p973name"]!="") ) {
-        const eName = req.body["p973name"];
+        var eName = req.body["p973name"];
         eName = eName.replaceAll("\'","\\'");
         dataUpdate = dataUpdate + "`CollectionName`='"+eName+"',";
     }
     
     if (req.body["notecheck"] === "on"){
-        const note = req.body["p973note"];
+        var note = req.body["p973note"];
         note = note.replaceAll("\'","\\'");
         dataUpdate = dataUpdate +"`Note`= '"+note+"',"; 
     }
@@ -495,8 +496,8 @@ app.delete('/server/pcollections-delete/:value', async (req, res) => {
 // Add P Collection Item
 app.post('/server/pcollections-add', async (req, res) => {
 
-    const pName = req.body["p973name"];
-    const note = req.body["p973note"]!==""?req.body["p973note"]:"\'\'";
+    var pName = req.body["p973name"];
+    var note = req.body["p973note"]!==""?req.body["p973note"]:"\'\'";
     pName = pName.replaceAll("\'","\\'");
     note = note.replaceAll("\'","\\'");
 
