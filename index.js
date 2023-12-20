@@ -10,8 +10,8 @@ const axios = require('axios')
 const cors = require('cors')
 const { APIError } = require('rest-api-errors')
 
-// const whitelist = ["https://metadata.sdsu.edu"]
-const whitelist = ["https://metadata.sdsu.edu", "http://localhost:3000"] 
+const whitelist = ["https://metadata.sdsu.edu"]
+// const whitelist = ["https://metadata.sdsu.edu", "http://localhost:3000"] 
 
 // Extract all the environment variables from .env file
 const API_TOKEN = process.env.ALMA_API_KEY;
@@ -115,6 +115,23 @@ app.post('/server/allcollections-add',(req, res) => {
     
     })
 })
+
+// Select a value from all e-collections
+app.get('/server/allcollections/collectionid/:value',(req, res) => {
+
+    let col_Id = BigInt(req.params.value);
+
+    query_stmt = "SELECT * FROM `AllEbookCollections` WHERE `Collection ID` = ?";
+    db.query(query_stmt, [col_Id], (err, result) => {
+        if(err) {
+            console.log(err)
+            res.sendStatus(400);
+        } else {
+            res.status(200).send(result);
+        }
+    })
+})
+
 
 // Delete a value from all e-collections
 app.delete('/server/allcollections-delete/:value',(req, res) => {
