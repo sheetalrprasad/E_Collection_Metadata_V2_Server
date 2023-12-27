@@ -1,3 +1,9 @@
+/*
+Date: 5 September 2023
+Author: Sheetal
+Description: This file is the main file for the backend server. It contains all the routes and functions for the backend server.
+*/
+
 const express = require('express')
 const app = express()
 const mysql = require('mysql')
@@ -197,7 +203,7 @@ app.post("/server/allcollections-edit", async (req, res) => {
         dataUpdate = dataUpdate + "`Note`= '"+collectionNotes+"',";
     }
     if(req.body["idcheck"] === "on"){
-        dataUpdate = dataUpdate + "`Collection ID`="+req.body["eid"]+", ";
+        dataUpdate = dataUpdate + "`Collection ID`="+req.body["eid"]+",";
     }
     if(req.body["pocheck"] === "on"){
         dataUpdate = dataUpdate + "`PO Linked?`="+req.body["po"]+", ";
@@ -246,6 +252,22 @@ app.get('/server/vendors',(req, res) => {
     })
 })
 
+// Select a value from all vendors
+app.get('/server/vendors/vendorid/:value',(req, res) => {
+
+    let col_Id = (req.params.value);
+
+    query_stmt = "SELECT * FROM `VendorList` WHERE `Vendor ID` = ?";
+    db.query(query_stmt, [col_Id], (err, result) => {
+        if(err) {
+            console.log(err)
+            res.sendStatus(400);
+        } else {
+            res.status(200).send(result);
+        }
+    })
+})
+
 // Get all vendors-delete
 app.delete('/server/vendors-delete/:value', async (req, res) => {
     let data = req.params.value;
@@ -283,13 +305,12 @@ app.post("/server/vendors-edit", (req, res) => {
     const oldID = req.body["oldID"];
     let dataUpdate = "";
 
-
-    if ( (req.body["idCheck"] === "on")) {
+    if ( (req.body["idcheck"] === "on")) {
         dataUpdate = dataUpdate + "`Vendor ID`='"+req.body["vendorId"]+"',";
     }
 
-    if ( (req.body["namecheck"] === "on") & (req.body["name"]!="") ) {
-        var vName = req.body["name"];
+    if ( (req.body["namecheck"] === "on") & (req.body["vendorName"]!="") ) {
+        var vName = req.body["vendorName"];
         vName = vName.replaceAll("'","\'");
         dataUpdate = dataUpdate + "`Vendor Name` = '"+vName+"',";
     }
@@ -317,7 +338,7 @@ app.post("/server/vendors-edit", (req, res) => {
 
     if ((req.body["contactcheck"] === "on")) {
         const contact = req.body["contact"];
-        dataUpdate = dataUpdate +"`Contact`= '"+contact+"',";
+        dataUpdate = dataUpdate +"`Vendor Contact`= '"+contact+"',";
     }
 
     try {
@@ -372,6 +393,23 @@ app.get('/server/all973collections',(req, res) => {
     })
 })
 
+
+// Select a value from all ecollections
+app.get('/server/ecollections/collectionid/:value',(req, res) => {
+
+    let col_Id = (req.params.value);
+
+    query_stmt = "SELECT * FROM `973E-CollectionName` WHERE `973Value` = ?";
+    db.query(query_stmt, [col_Id], (err, result) => {
+        if(err) {
+            console.log(err)
+            res.sendStatus(400);
+        } else {
+            res.status(200).send(result);
+        }
+    })
+})
+
 // Update E Collection Item of 973
 app.post('/server/ecollections-edit', (req, res) => {
 
@@ -404,6 +442,10 @@ app.post('/server/ecollections-edit', (req, res) => {
         var note = req.body["e973note"];
         note = note.replaceAll("\'","\\'");
         dataUpdate = dataUpdate + "`Note`='"+note+"',";
+    }
+
+    if(req.body["idcheck"] === "on"){
+        dataUpdate = dataUpdate + "`CollectionID`="+req.body["e973id"]+",";
     }
 
     try {
@@ -458,6 +500,22 @@ app.post('/server/ecollections-add', async (req, res) => {
         }
     })
     
+})
+
+// Select a value from all pcoolections
+app.get('/server/pcollections/collectionid/:value',(req, res) => {
+
+    let col_Id = (req.params.value);
+
+    query_stmt = "SELECT * FROM `973P-CollectionName` WHERE `CollectionName` = ?";
+    db.query(query_stmt, [col_Id], (err, result) => {
+        if(err) {
+            console.log(err)
+            res.sendStatus(400);
+        } else {
+            res.status(200).send(result);
+        }
+    })
 })
 
 // Update P Collection Item
