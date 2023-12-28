@@ -127,8 +127,8 @@ app.get('/server/allcollections/collectionid/:value',(req, res) => {
 
     let col_Id = BigInt(req.params.value);
 
-    query_stmt = "SELECT * FROM `AllEbookCollections` WHERE `Collection ID` = ?";
-    db.query(query_stmt, [col_Id], (err, result) => {
+    query_stmt = "SELECT CAST(`Collection ID` AS VARCHAR(25)) AS `Collection ID`, `Collection Name`, `Resource Type`, `Bib Source`, `Update Frequency`, `PO Linked?`, `Active?`, `Perpetual?`, `Aggregator?`, `Data Sync?`, `OA?`, `Reclamation?`, `Vendor`, `Lendable Note`, `Note` from `AllEbookCollections` WHERE `Collection ID` ="+col_Id;
+    db.query(query_stmt, (err, result) => {
         if(err) {
             console.log(err)
             res.sendStatus(400);
@@ -399,8 +399,8 @@ app.get('/server/ecollections/collectionid/:value',(req, res) => {
 
     let col_Id = (req.params.value);
 
-    query_stmt = "SELECT * FROM `973E-CollectionName` WHERE `973Value` = ?";
-    db.query(query_stmt, [col_Id], (err, result) => {
+    query_stmt = "SELECT CAST(`CollectionID` AS VARCHAR(25)) AS `CollectionID`, `973Value`, `973inAllBIB`, `973NormRule`, `IZOnly?`, `Note` FROM `973E-CollectionName` WHERE `973Value` = '"+col_Id+"'";
+    db.query(query_stmt, (err, result) => {
         if(err) {
             console.log(err)
             res.sendStatus(400);
